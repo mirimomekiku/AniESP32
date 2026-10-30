@@ -327,12 +327,17 @@ def preview_strip(frames, name, scale, per_row=8):
     sheet.resize((sheet.width * scale, sheet.height * scale), Image.NEAREST).save(os.path.join(PREVIEW, name))
 
 
-CHARS = ["BABY", "CHILD", "TEEN", "FOX", "TOAD", "TANUKI", "CAT", "WEASEL", "SLUG", "HAWK", "SNAKE", "RABBIT", "AXOLOTL", "PENGUIN", "SHEEP"]
+# Character set A: the growing stages and the first 12 adults (sheets v3_*.png, 5x3 grid).
+# Character set B: 10 more adults (sheets v4_*.png, 5x2 grid). Every pose sheet has the same layout as its base sheet.
+CHARS_A = ["BABY", "CHILD", "TEEN", "FOX", "TOAD", "TANUKI", "CAT", "WEASEL", "SLUG", "HAWK", "SNAKE", "RABBIT", "AXOLOTL", "PENGUIN", "SHEEP"]
+CHARS_B = ["REDPANDA", "DRAGON", "KOI", "CRANE", "HEDGEHOG", "CAPYBARA", "OCTOPUS", "TORTOISE", "PANDA", "BAT"]
+CHARS = CHARS_A + CHARS_B
+CHAR_SETS = [("v3", 5, 3, CHARS_A), ("v4", 5, 2, CHARS_B)]
 FIRST_ADULT = 3
 # animation poses and the sheet each one is drawn on (same 5x3 character layout as the base sheet)
-POSES = [("IDLE_A", "v3_base.png"), ("IDLE_B", "v3_idle2.png"), ("WALK_A", "v3_walk1.png"), ("WALK_B", "v3_walk2.png"),
-         ("SLEEP", "v3_sleep.png"), ("SIT", "v3_sit.png"), ("EAT_A", "v3_eat1.png"), ("EAT_B", "v3_eat2.png"),
-         ("CLEAN_A", "v3_clean1.png"), ("CLEAN_B", "v3_clean2.png"), ("HAPPY", "v3_happy.png"), ("SAD", "v3_sad.png")]
+POSES = [("IDLE_A", "base"), ("IDLE_B", "idle2"), ("WALK_A", "walk1"), ("WALK_B", "walk2"),
+         ("SLEEP", "sleep"), ("SIT", "sit"), ("EAT_A", "eat1"), ("EAT_B", "eat2"),
+         ("CLEAN_A", "clean1"), ("CLEAN_B", "clean2"), ("HAPPY", "happy"), ("SAD", "sad")]  # (pose, sheet name)
 
 
 def main():
@@ -381,17 +386,22 @@ def main():
     stage = slice_sheet(v2("v2_stages.png"), 4, 2, 96, 86)[0]
     emit_group("STAGE", ["EGG", "CRACK", "GHOST"], [stage[0], stage[1], stage[7]], 96, 96)
 
-    # the 15 characters x 12 poses
-    base_frames, base_ref = slice_sheet(v3("v3_base.png"), 5, 3, 96, 86)
-    sheets = []
-    for pose, fn in POSES:
-        if pose == "IDLE_A":
-            sheets.append(base_frames)
-        elif os.path.exists(v3(fn)):
-            sheets.append(slice_sheet(v3(fn), 5, 3, 96, 86, ref=base_ref)[0])
-        else:
-            print(f"warning: {fn} missing, using the idle pose for {pose}")
-            sheets.append(base_frames)
+    # every character x 12 poses; each character set has its own sheets and grid
+    char_frames = {}  # character name -> its 12 frames
+    for prefix, cols, rows, names in CHAR_SETS:
+        base_frames, base_ref = slice_sheet(os.path.join(ROOT, "assets", prefix, "raw", f"{prefix}_base.png"), cols, rows, 96, 86)
+        per_pose = []
+        for pose, sheet in POSES:
+            path = os.path.join(ROOT, "assets", prefix, "raw", f"{prefix}_{sheet}.png")
+            if pose == "IDLE_A":
+                per_pose.append(base_frames)
+            elif os.path.exists(path):
+                per_pose.append(slice_sheet(path, cols, rows, 96, 86, ref=base_ref)[0])
+            else:
+                print(f"warning: {prefix}_{sheet}.png missing, using the idle pose for {pose}")
+                per_pose.append(base_frames)
+        for ci, name in enumerate(names):
+            char_frames[name] = [sheet_frames[ci] for sheet_frames in per_pose]
     h.append("#define PET_SIZE 96")
     h.append("enum CharId { " + ", ".join(f"CH_{n}" for n in CHARS) + ", CH_COUNT };")
     h.append("enum PoseId { " + ", ".join(f"POSE_{n}" for n, _ in POSES) + ", POSE_COUNT };")
@@ -400,8 +410,8 @@ def main():
     h.append("enum AdultId { " + ", ".join(f"ADULT_{n}" for n in CHARS[FIRST_ADULT:]) + ", ADULT_COUNT };")
     h.append("extern const Sprite PET_SPRITES[CH_COUNT][POSE_COUNT];\n")
     pet_rows = []
-    for ci, name in enumerate(CHARS):
-        frames = [sh[ci] for sh in sheets]
+    for name in CHARS:
+        frames = char_frames[name]
         pal, idxs, prev = indexed_group(frames, 64)
         preview_strip(prev, f"pet_{name.lower()}.png", 1, per_row=12)
         c.append(fmt_u16(f"PET_{name}_PAL", pal))
@@ -413,9 +423,9 @@ def main():
     c.append("const Sprite PET_SPRITES[CH_COUNT][POSE_COUNT] = {\n" + "\n".join(pet_rows) + "\n};\n")
     # one contact sheet of every character and pose for a quick visual check
     contact = Image.new("RGBA", (96 * len(POSES), 96 * len(CHARS)), (120, 100, 140, 255))
-    for ci in range(len(CHARS)):
+    for ci, name in enumerate(CHARS):
         for pi in range(len(POSES)):
-            contact.alpha_composite(sheets[pi][ci], (pi * 96, ci * 96))
+            contact.alpha_composite(char_frames[name][pi], (pi * 96, ci * 96))
     os.makedirs(PREVIEW, exist_ok=True)
     contact.save(os.path.join(PREVIEW, "pets_contact.png"))
 
