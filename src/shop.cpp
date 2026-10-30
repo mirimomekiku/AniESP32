@@ -28,15 +28,15 @@ static void cardRect(int slot, int &x, int &y) {
 
 static void drawHeader() {
   gradPanel(&tft, HEADER_X, HEADER_Y, HEADER_W, HEADER_H, R_BUTTER, 5, 0);
-  blitSprite(&tft, ITEM_FRAMES[ITEM_COIN], HEADER_X + 6, HEADER_Y + 1);
+  blitSpriteHalf(&tft, ITEM_FRAMES[ITEM_COIN], HEADER_X + 10, HEADER_Y + HEADER_H / 2 - 8);  // a modest 16 px coin
   char buf[12];
   snprintf(buf, sizeof(buf), "%u", player.ryo);
-  drawText(&tft, FONT_CHUNK, buf, HEADER_X + 44, HEADER_Y + 9, 2, C_WHITE, C_OUT, TXT_OUTLINE);
+  drawTextC(&tft, FONT_CHUNK, buf, HEADER_X + 32, HEADER_Y + HEADER_H / 2, 1, C_WHITE, C_OUT, TXT_LEFTX | TXT_OUTLINE);
   if (millis() < toastUntil && toast[0]) {
-    drawText(&tft, FONT_SILK, toast, 228, HEADER_Y + 12, 2, R_RED.bot, C_WHITE, TXT_RIGHT | TXT_SHADOW);
+    drawTextC(&tft, FONT_SILK, toast, 228, HEADER_Y + HEADER_H / 2, 2, R_RED.bot, C_WHITE, TXT_RIGHT | TXT_SHADOW);
     toastShown = true;
   } else {
-    drawText(&tft, FONT_SILK, "SHOP", 228, HEADER_Y + 12, 2, C_TEXT, C_WHITE, TXT_RIGHT | TXT_SHADOW);
+    drawTextC(&tft, FONT_SILK, "SHOP", 228, HEADER_Y + HEADER_H / 2, 2, C_TEXT, C_WHITE, TXT_RIGHT | TXT_SHADOW);
     toastShown = false;
   }
 }
@@ -71,8 +71,8 @@ static void drawCard(int slot) {
     gradPanel(&tft, x + CARD_W - w - 5, y + 5, w, 15, R_CREAM, 3, 0, false, 3);
     drawText(&tft, FONT_SILK, own, x + CARD_W - 5 - w / 2, y + 8, 1, C_TEXT, C_WHITE, TXT_CENTER);
   }
-  // a modest title (the chunky 8 px font at 1x), then the effects as icon + number
-  drawText(&tft, FONT_CHUNK, d.name, x + CARD_W / 2, y + 41, 1, C_WHITE, C_OUT, TXT_CENTER | TXT_OUTLINE);
+  // title: a little bigger than before (10 px capitals), dark with a soft light shadow
+  drawTextC(&tft, FONT_SILK, d.name, x + CARD_W / 2, y + 44, 2, C_TEXT, C_WHITE, TXT_SHADOW);
 
   ItemEffect fx[4];
   int ne = itemEffects(id, fx);
@@ -86,17 +86,18 @@ static void drawCard(int slot) {
   int ex = x + (CARD_W - total) / 2;
   for (int i = 0; i < ne; i++) {
     if (i) ex += 5;
-    blitSpriteHalf(&tft, effectIcon(fx[i].kind), ex, y + 55);  // 32 px icon averaged down to 16
-    drawTextC(&tft, FONT_SILK, val[i], ex + 16 + 1 + textWidth(FONT_SILK, val[i], 1) / 2, y + 55 + 8, 1, C_TEXT, C_WHITE, TXT_SHADOW);
+    blitSpriteHalf(&tft, effectIcon(fx[i].kind), ex, y + 54);  // 32 px icon averaged down to 16
+    drawTextC(&tft, FONT_SILK, val[i], ex + 16 + 1 + textWidth(FONT_SILK, val[i], 1) / 2, y + 54 + 8, 1, C_TEXT, C_WHITE, TXT_SHADOW);
     ex += 16 + 1 + textWidth(FONT_SILK, val[i], 1);
   }
 
+  // price: a small coin and a small number
   char price[8];
   snprintf(price, sizeof(price), "%u", d.price);
-  int w = 20 + 4 + textWidth(FONT_CHUNK, price, 2);
-  int px = x + (CARD_W - w) / 2, py = y + CARD_H - 24;
-  blitSpriteScaled(&tft, ITEM_FRAMES[ITEM_COIN], px, py, 20, 20);
-  drawText(&tft, FONT_CHUNK, price, px + 24, py + 3, 2, C_WHITE, C_OUT, TXT_OUTLINE);
+  int w = 16 + 3 + textWidth(FONT_CHUNK, price, 1);
+  int px = x + (CARD_W - w) / 2, cy = y + CARD_H - 12;
+  blitSpriteHalf(&tft, ITEM_FRAMES[ITEM_COIN], px, cy - 8);
+  drawTextC(&tft, FONT_CHUNK, price, px + 19, cy, 1, C_WHITE, C_OUT, TXT_LEFTX | TXT_OUTLINE);
 }
 
 static void drawCards() {
@@ -133,7 +134,7 @@ static void shopTouch(int x, int y) {
   int nav = pageNavHit(x, y, pageNo, pageCount());
   if (nav >= 0) {
     pageNo += nav == 0 ? -1 : 1;
-    drawAll();
+    fadeThrough(drawAll);  // smooth page change
     return;
   }
   // category chips
@@ -142,7 +143,7 @@ static void shopTouch(int x, int y) {
     if (c != category) {
       category = c;
       pageNo = 0;
-      drawAll();
+      fadeThrough(drawAll);
     }
     return;
   }

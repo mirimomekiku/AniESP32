@@ -127,7 +127,7 @@ static void helpTouch(int x, int y) {
   int nav = pageNavHit(x, y, pageNo, PAGE_COUNT);
   if (nav >= 0) {
     pageNo += nav == 0 ? -1 : 1;
-    drawPage();
+    fadeThrough(drawPage);
   }
 }
 

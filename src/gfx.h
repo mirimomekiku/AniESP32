@@ -68,6 +68,9 @@ void drawGradientBg(Ramp r, int bands = 16);
 enum { TAB_HOME, TAB_MENU, TAB_CLOCK, TAB_COUNT };
 void drawNav(int activeTab);  // TAB_*; the bar sits at the bottom of the screen
 
+// Smooth page change: fade to black, run redraw() while dark, fade back in
+void fadeThrough(void (*redraw)());
+
 // BACK / page counter / NEXT along the bottom, for screens whose content spans several pages
 void pageNavDraw(int page, int pages);
 int pageNavHit(int x, int y, int page, int pages);  // -1 = none, 0 = previous page, 1 = next page

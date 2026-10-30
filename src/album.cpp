@@ -151,7 +151,7 @@ static void albumTouch(int x, int y) {
   if (nav >= 0) {
     pageNo += nav == 0 ? -1 : 1;
     selected = -1;
-    drawAll();
+    fadeThrough(drawAll);
     return;
   }
 #ifdef DEBUG_FAST

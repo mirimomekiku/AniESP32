@@ -1,6 +1,7 @@
 #include "gfx.h"
 
 #include "config.h"
+#include "hw.h"
 
 TFT_eSPI tft = TFT_eSPI();
 TFT_eSprite view = TFT_eSprite(&tft);
@@ -318,6 +319,12 @@ void drawNav(int activeTab) {
     int off = active ? 3 : 0;
     blitSprite(&tft, *icons[i], x + (w - 32) / 2, NAV_Y + 2 + (h - 32) / 2 + off);
   }
+}
+
+void fadeThrough(void (*redraw)()) {
+  hwFadeTo(0, 90);
+  redraw();
+  hwFadeTo(hwTargetBacklight(), 150);
 }
 
 // ---- page bar ----
