@@ -91,10 +91,12 @@ static void drawHeader() {
   blitSprite(&tft, ROOMUI_FRAMES[ROOMUI_BACK], 4, 4);
   gradPanel(&tft, 54, 8, 182, 34, R_BUTTER, 5, 0);
   char buf[32];
-  snprintf(buf, sizeof(buf), "DEX %d/%d", albumCount(), ADULT_COUNT);
-  drawText(&tft, FONT_CHUNK, buf, 64, 17, 2, C_WHITE, C_OUT, TXT_OUTLINE);
+  // "DEX" as a small label, the count big, and RAISED small on the right: widths add up to well under the panel
+  drawTextC(&tft, FONT_SILK, "DEX", 64, 25, 1, C_TEXT, C_WHITE, TXT_LEFTX | TXT_SHADOW);
+  snprintf(buf, sizeof(buf), "%d/%d", albumCount(), ADULT_COUNT);
+  drawTextC(&tft, FONT_CHUNK, buf, 88, 25, 2, C_WHITE, C_OUT, TXT_LEFTX | TXT_OUTLINE);
   snprintf(buf, sizeof(buf), "RAISED %u", raised);
-  drawText(&tft, FONT_SILK, buf, 228, 20, 1, C_TEXT, C_WHITE, TXT_RIGHT | TXT_SHADOW);
+  drawTextC(&tft, FONT_SILK, buf, 228, 25, 1, C_TEXT, C_WHITE, TXT_RIGHT | TXT_SHADOW);
 }
 
 // Two short lines for a name such as "FROST PENGUIN" so it fits beside the thumbnail
