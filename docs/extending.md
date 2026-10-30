@@ -65,6 +65,12 @@ when you change the item count (the current code migrates the original 6-item sa
 3. Navigate with `gotoScreen(SCR_...)`. For a nav-bar tab, keep it in the first three ids.
 4. Give pages without the nav bar a back icon (`ROOMUI_FRAMES[ROOMUI_BACK]`) like the clock and DEX do.
 
+## Edit the help text
+
+The help pages are the `PAGES[]` table at the top of `src/help.cpp`: a title and a body of paragraphs separated by
+`\n`. Lines wrap automatically; a page has room for about 20 lines of 36 characters. Keep text uppercase to match the
+rest of the UI.
+
 ## Change the look
 
 - **Colours:** the UI palette and gradient ramps are set in `gfxInit()` in `src/gfx.cpp` (`R_PINK`, `R_MINT`, ...).

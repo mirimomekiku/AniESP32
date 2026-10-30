@@ -81,6 +81,7 @@ clock over NTP. Full instructions: [Build and flash](docs/build-and-flash.md).
 | **Sleep** | Put it to bed or wake it up |
 | **Shop / DEX** | Spend ryo on foods and items (BACK/NEXT pages), see which of the 12 forms you have raised |
 | **Stats** | Every stat with a plain-language level, and a "what to do" list telling you where to focus |
+| **Help** | Seven pages: how to play, the stats, fixing problems, evolution, games, shop, day and night |
 | **Clock** (bottom bar) | Set the time and the alarm |
 
 Keep the three bars (food, joy, energy) up, clean up the poop, answer its calls, and tap it to scold a tantrum.

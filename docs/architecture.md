@@ -37,8 +37,9 @@ calls the active screen. The code is split so that **game rules never draw** and
 | `shop.cpp` | Shop screen: FOOD / ITEMS chips, 2x2 cards, BACK / NEXT |
 | `games.cpp` | Shuriken and shell mini-games |
 | `stats.cpp` | Stats screen: vitals, care indicators, advice list |
+| `help.cpp` | Help screen: seven pages of word-wrapped text (edit the `PAGES` table to change the content) |
 | `colortest.cpp` | Hidden colour test screen |
-| `gfx.h/.cpp` | Drawing toolkit, including the reusable BACK / NEXT page bar (`pageNavDraw`, `pageNavHit`) |
+| `gfx.h/.cpp` | Drawing toolkit, including the reusable BACK / NEXT page bar (`pageNavDraw`, `pageNavHit`) and `ButtonRow`, which has a normal (60 px) and a compact (30 px pill) mode |
 | `hw.h/.cpp` | Peripherals: LED, buzzer, backlight fade, light sensor |
 | `assets.h/.cpp` | **Generated**: sprites, palettes, backgrounds |
 | `font_data.h/.cpp` | **Generated**: bitmap fonts |
@@ -75,7 +76,7 @@ struct Screen {
 | `SCR_VILLAGE` | Home | Nav bar |
 | `SCR_MENU` | Main menu | Nav bar |
 | `SCR_CLOCK` | Clock | Nav bar |
-| `SCR_SHOP`, `SCR_ALBUM`, `SCR_STATS` | Shop, DEX, Stats | Menu (own back icon) |
+| `SCR_SHOP`, `SCR_ALBUM`, `SCR_STATS`, `SCR_HELP` | Shop, DEX, Stats, Help | Menu (own back icon) |
 | `SCR_FEED/PLAY/CLEAN/BAG/SLEEP` | Rooms | Menu (back icon) |
 | `SCR_SHURIKEN`, `SCR_SHELL` | Mini-games | Play list |
 | `SCR_DIAG` | Colour test | Hidden: top-right corner of the menu |
