@@ -45,20 +45,19 @@ static void draw() {
   for (int i = 0; i < PER_PAGE; i++) {
     int y = MY + i * ROW_STEP;
     int ri = page * PER_PAGE + i;
-    if (ri >= nrows) {
-      gradPanel(&tft, MX + 2, y, MW - 4, ROW_H, R_GREY, 3, 0);  // empty slot keeps the layout steady
-      continue;
-    }
+    if (ri >= nrows) continue;  // nothing in this slot
     const Row &r = rows[ri];
     bool empty = r.count == 0;
     gradPanel(&tft, MX + 2, y, MW - 4, ROW_H, empty ? R_GREY : R_CREAM, 4, 0);
     if (r.icon) blitSprite(&tft, *r.icon, MX + 8, y + (ROW_H - 32) / 2);
-    drawText(&tft, FONT_SILK, r.label, MX + 46, y + 12, 2, C_TEXT, C_WHITE, TXT_SHADOW);
+    int cy = y + ROW_H / 2;
+    drawTextC(&tft, FONT_SILK, r.label, MX + 46, cy, 2, C_TEXT, C_WHITE, TXT_LEFTX | TXT_SHADOW);
+    // the right-hand text (count, FREE, duration) is small so it can never run into the label
     char buf[10] = "";
     if (r.right) snprintf(buf, sizeof(buf), "%s", r.right);
     else if (r.count == -1) snprintf(buf, sizeof(buf), "FREE");
     else if (r.count >= 0) snprintf(buf, sizeof(buf), "x%d", r.count);
-    if (buf[0]) drawText(&tft, FONT_CHUNK, buf, MX + MW - 12, y + 10, 2, empty ? R_RED.bot : C_TEXT, C_WHITE, TXT_RIGHT | TXT_SHADOW);
+    if (buf[0]) drawTextC(&tft, FONT_CHUNK, buf, MX + MW - 12, cy, 1, empty ? R_RED.bot : C_TEXT, C_WHITE, TXT_RIGHT | TXT_SHADOW);
   }
   // footer: CLOSE, previous page, next page
   footerButton(MX + 2, 112, "CLOSE", R_PINK, true);
