@@ -8,15 +8,15 @@ struct Entry {
   int screen;  // where it leads
 };
 
-static const int N = 8;
+static const int N = 7;
 static const Entry ENTRIES[N] = {
     {"FEED", MENU_FEED, SCR_FEED},   {"PLAY", MENU_PLAY, SCR_PLAY},   {"CLEAN", MENU_CLEAN, SCR_CLEAN},
-    {"BAG", MENU_BAG, SCR_BAG},      {"SLEEP", MENU_SLEEP, SCR_SLEEP}, {"SHOP", MENU_SHOP, SCR_SHOP},
-    {"CLOCK", MENU_CLOCK, SCR_CLOCK}, {"DEX", MENU_DEX, SCR_ALBUM},
+    {"BAG", MENU_BAG, SCR_BAG},      {"SLEEP", MENU_SLEEP, SCR_SLEEP},
+    {"SHOP", MENU_SHOP, SCR_SHOP},   {"DEX", MENU_DEX, SCR_ALBUM},
 };
 
-// Rows of 3, 3 and 2 badges, each row centred
-static const int ROW_COUNTS[3] = {3, 3, 2};
+// Rows of 3, 2 and 2 badges, each row centred
+static const int ROW_COUNTS[3] = {3, 2, 2};
 static const int GAP_X = 6, ROW_PITCH = 90, TOP = 10;
 
 static void badgePos(int i, int &x, int &y) {

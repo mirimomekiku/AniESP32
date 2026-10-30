@@ -51,6 +51,8 @@ void drawText(TFT_eSPI *dst, const PixelFont &f, const char *s, int x, int y, in
 
 // ---- indexed backgrounds (240x320) ----
 void drawBg(const uint8_t *idx, const uint16_t *pal);
+// Redraws a rectangle of a background straight to the display (to erase something drawn over it)
+void drawBgRegion(const uint8_t *idx, const uint16_t *pal, int x, int y, int w, int h);
 void copyBgToView(const uint8_t *idx, const uint16_t *pal, int vx, int vy, int vw, int vh);
 
 // A 5-segment stat bar with banded gradient segments
@@ -59,7 +61,7 @@ void drawSegBar(TFT_eSPI *dst, int x, int y, int filled, Ramp fillRamp, int segW
 // Full-screen vertical gradient drawn as hard bands, for screens without a scene background
 void drawGradientBg(Ramp r, int bands = 16);
 
-enum { TAB_HOME, TAB_MENU, TAB_SHOP, TAB_COUNT };
+enum { TAB_HOME, TAB_MENU, TAB_CLOCK, TAB_COUNT };
 void drawNav(int activeTab);  // TAB_*; the bar sits at the bottom of the screen
 
 struct BtnDef {

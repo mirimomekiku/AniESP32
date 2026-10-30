@@ -22,7 +22,7 @@
 SPIClass touchSPI(VSPI);
 XPT2046_Touchscreen ts(XPT2046_CS, XPT2046_IRQ);
 
-static const Screen *screens[SCR_COUNT] = {&VILLAGE_SCREEN, &MENU_SCREEN,  &SHOP_SCREEN,    &CLOCK_SCREEN,  &ALBUM_SCREEN,
+static const Screen *screens[SCR_COUNT] = {&VILLAGE_SCREEN, &MENU_SCREEN,  &CLOCK_SCREEN,   &SHOP_SCREEN,   &ALBUM_SCREEN,
                                            &FEED_SCREEN,    &PLAY_SCREEN,  &CLEAN_SCREEN,   &BAG_SCREEN,    &SLEEP_SCREEN,
                                            &SHURIKEN_SCREEN, &SHELL_SCREEN, &DIAG_SCREEN};
 static int current = 0;
@@ -59,7 +59,7 @@ static void handleTouch() {
     }
     int x, y;
     readTouch(x, y);
-    if (current <= SCR_SHOP && y >= NAV_Y) {
+    if (current <= SCR_CLOCK && y >= NAV_Y) {
       int target = constrain(x / 80, 0, TAB_COUNT - 1);  // TAB_* order matches the first three ScreenIds
       if (target != current) switchTo(target);
     } else {

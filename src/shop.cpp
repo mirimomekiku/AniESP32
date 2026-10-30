@@ -5,8 +5,8 @@
 #include "screen.h"
 
 static const int CARD_W = 114, CARD_H = 74, CARD_GAP = 3;
-static const int GRID_X = 4, GRID_Y = 42;
-static const int HEADER_Y = HUD_Y, HEADER_H = 34;
+static const int GRID_X = 4, GRID_Y = 52;
+static const int HEADER_Y = 8, HEADER_X = 54, HEADER_W = 182, HEADER_H = 34;
 
 static const char *toast = "";
 static uint32_t toastUntil = 0;
@@ -18,11 +18,11 @@ static void cardRect(int i, int &x, int &y) {
 }
 
 static void drawHeader() {
-  gradPanel(&tft, 4, HEADER_Y, 232, HEADER_H, R_BUTTER, 5, 0);
-  blitSprite(&tft, ITEM_FRAMES[ITEM_COIN], 10, HEADER_Y + 1);
+  gradPanel(&tft, HEADER_X, HEADER_Y, HEADER_W, HEADER_H, R_BUTTER, 5, 0);
+  blitSprite(&tft, ITEM_FRAMES[ITEM_COIN], HEADER_X + 6, HEADER_Y + 1);
   char buf[12];
   snprintf(buf, sizeof(buf), "%u", player.ryo);
-  drawText(&tft, FONT_CHUNK, buf, 48, HEADER_Y + 9, 2, C_WHITE, C_OUT, TXT_OUTLINE);
+  drawText(&tft, FONT_CHUNK, buf, HEADER_X + 44, HEADER_Y + 9, 2, C_WHITE, C_OUT, TXT_OUTLINE);
   if (millis() < toastUntil && toast[0]) {
     drawText(&tft, FONT_SILK, toast, 228, HEADER_Y + 12, 2, R_RED.bot, C_WHITE, TXT_RIGHT | TXT_SHADOW);
     toastShown = true;
@@ -54,7 +54,7 @@ static void drawCard(int i) {
 
 static void shopEnter() {
   drawGradientBg(R_PINK);
-  drawNav(TAB_SHOP);
+  blitSprite(&tft, ROOMUI_FRAMES[ROOMUI_BACK], 4, 4);
   drawHeader();
   for (int i = 0; i < SI_COUNT; i++) drawCard(i);
 }
@@ -66,6 +66,10 @@ static void say(const char *msg) {
 }
 
 static void shopTouch(int x, int y) {
+  if (x < 52 && y < 52) {
+    gotoScreen(SCR_MENU);
+    return;
+  }
   for (int i = 0; i < SI_COUNT; i++) {
     int cx, cy;
     cardRect(i, cx, cy);

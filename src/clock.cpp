@@ -198,7 +198,7 @@ bool clockIsNight() {
 }
 
 // ---- clock screen ----
-static const int CLK_VX = 0, CLK_VY = 52, CLK_VW = 240, CLK_VH = 160;
+static const int CLK_VX = 0, CLK_VY = 30, CLK_VW = 240, CLK_VH = 160;
 static const char *DAYS[7] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 static const char *MONTHS[12] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
 static ButtonRow buttons;
@@ -206,7 +206,6 @@ static int lastShownSec = -1;
 static bool alarmMode = false;
 
 static void setButtons() {
-  buttons.setY(254);
   if (alarmMode) {
     BtnDef defs[4] = {{"OK", nullptr, R_MINT}, {"+H", nullptr, R_SKY}, {"+M", nullptr, R_SKY}, {alarmOn ? "ON" : "OFF", nullptr, alarmOn ? R_BUTTER : R_GREY}};
     buttons.set(defs, 4);
@@ -228,7 +227,7 @@ static void clockEnter() {
   alarmMode = false;
   gfxMakeView(CLK_VW, CLK_VH);
   drawBg(BG_CLOCK, BG_CLOCK_PAL);
-  blitSprite(&tft, ROOMUI_FRAMES[ROOMUI_BACK], 4, 4);  // back to the main menu
+  drawNav(TAB_CLOCK);
   setButtons();
   clockDirty = true;
 }
@@ -298,10 +297,6 @@ static void clockUpdate() {
 }
 
 static void clockTouch(int x, int y) {
-  if (x < 52 && y < 52) {
-    gotoScreen(SCR_MENU);
-    return;
-  }
   int i = buttons.hit(x, y);
   if (i < 0) return;
   buttons.press(i);

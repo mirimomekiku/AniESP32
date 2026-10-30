@@ -73,8 +73,8 @@ struct Screen {
 |----|--------|--------------|
 | `SCR_VILLAGE` | Home | Nav bar |
 | `SCR_MENU` | Main menu | Nav bar |
-| `SCR_SHOP` | Shop | Nav bar, menu |
-| `SCR_CLOCK`, `SCR_ALBUM` | Clock, DEX | Menu (own back icon) |
+| `SCR_CLOCK` | Clock | Nav bar |
+| `SCR_SHOP`, `SCR_ALBUM` | Shop, DEX | Menu (own back icon) |
 | `SCR_FEED/PLAY/CLEAN/BAG/SLEEP` | Rooms | Menu (back icon) |
 | `SCR_SHURIKEN`, `SCR_SHELL` | Mini-games | Play list |
 | `SCR_DIAG` | Colour test | Hidden: top-right corner of the menu |

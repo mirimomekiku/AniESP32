@@ -67,7 +67,7 @@ clock over NTP. Full instructions: [Build and flash](docs/build-and-flash.md).
 ## How to play
 
 1. **Tap the egg** to warm it. It hatches after 10 taps or 2 minutes.
-2. Use the **bottom bar**: `HOME` (the pet in its village), `MENU` (all actions), `SHOP`.
+2. Use the **bottom bar**: `HOME` (the pet in its village), `MENU` (all actions), `CLOCK`.
 3. From the **menu** open a room. Each room has icons at the bottom right and a back icon at the top left.
 
 | Room | What you do there |
@@ -77,7 +77,8 @@ clock over NTP. Full instructions: [Build and flash](docs/build-and-flash.md).
 | **Clean** | Sweep up poop, use medicine when it is sick |
 | **Bag** | Medicine, chakra potions and training scrolls |
 | **Sleep** | Put it to bed or wake it up |
-| **Shop / DEX / Clock** | Spend ryo, see which forms you have raised, set the time and alarm |
+| **Shop / DEX** | Spend ryo, see which forms you have raised |
+| **Clock** (bottom bar) | Set the time and the alarm |
 
 Keep the three bars (food, joy, energy) up, clean up the poop, answer its calls, and tap it to scold a tantrum.
 Fewer care mistakes and higher discipline lead to the rarer forms. The full rules are in [Gameplay](docs/gameplay.md).

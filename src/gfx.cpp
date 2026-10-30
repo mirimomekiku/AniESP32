@@ -269,6 +269,15 @@ void drawBg(const uint8_t *idx, const uint16_t *pal) {
   }
 }
 
+void drawBgRegion(const uint8_t *idx, const uint16_t *pal, int x, int y, int w, int h) {
+  static uint16_t line[SCREEN_W];
+  for (int r = 0; r < h; r++) {
+    const uint8_t *row = idx + (y + r) * SCREEN_W + x;
+    for (int i = 0; i < w; i++) line[i] = fx(pal[row[i]]);
+    tft.pushImage(x, y + r, w, 1, line);
+  }
+}
+
 void copyBgToView(const uint8_t *idx, const uint16_t *pal, int vx, int vy, int vw, int vh) {
   static uint16_t line[SCREEN_W];
   for (int r = 0; r < vh; r++) {
@@ -306,8 +315,8 @@ static void drawMenuGlyph(int cx, int cy) {
 }
 
 void drawNav(int activeTab) {
-  const Ramp ramps[TAB_COUNT] = {R_PINK, R_LAV, R_MINT};
-  const Sprite *icons[TAB_COUNT] = {&UI_FRAMES[UI_HOUSE], nullptr, &UI_FRAMES[UI_BAG]};
+  const Ramp ramps[TAB_COUNT] = {R_PINK, R_LAV, R_SKY};
+  const Sprite *icons[TAB_COUNT] = {&UI_FRAMES[UI_HOUSE], nullptr, &UI_FRAMES[UI_CLOCK]};
   tft.fillRect(0, NAV_Y, SCREEN_W, NAV_H, C_OUT);
   for (int i = 0; i < TAB_COUNT; i++) {
     bool active = activeTab == i;
