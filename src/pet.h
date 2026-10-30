@@ -61,9 +61,8 @@ void petSave();
 void petTick();                       // advance one game second
 void petCatchUp(uint32_t seconds);    // simulate time the device spent switched off
 
-ActionResult petEat(float food, float joy);  // eat something; refuses when full
-ActionResult petRestoreEnergy(float amount);
-ActionResult petTrain(float discipline);
+// Eat or drink something: raises the given stats. Refused when it is a real meal (food >= 10) and the pet is full.
+ActionResult petConsume(int food, int joy, int energy, int discipline);
 ActionResult petPlay();
 ActionResult petClean();
 ActionResult petHeal();

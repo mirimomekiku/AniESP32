@@ -2,19 +2,36 @@
 #pragma once
 #include <Arduino.h>
 
+#include "assets.h"
 #include "pet.h"
 
-enum ShopItem : uint8_t { SI_ONIGIRI, SI_RAMEN, SI_DANGO, SI_POTION, SI_MEDICINE, SI_SCROLL, SI_COUNT };
+// The first six ids are the original items and must keep their numbers (older saves store counts by id).
+enum ShopItem : uint8_t {
+  SI_ONIGIRI, SI_RAMEN, SI_DANGO, SI_POTION, SI_MEDICINE, SI_SCROLL,
+  SI_MOCHI, SI_TEMPURA, SI_SUSHI, SI_TAIYAKI, SI_UDON, SI_MATCHA, SI_CAKE, SI_BENTO, SI_BERRY,
+  SI_COUNT
+};
+
+enum ItemKind : uint8_t { IK_FOOD, IK_ITEM };
 
 struct ShopItemDef {
   const char *name;
   uint16_t price;
-  uint8_t sprite;  // ITEM_* index in assets.h
-  const char *blurb;
+  ItemKind kind;
+  uint8_t sprite;  // FOOD_* for foods, ITEM_* for other items
+  int8_t food, joy, energy, discipline;  // what it gives
   const char *okMsg;
 };
 
 extern const ShopItemDef SHOP_ITEMS[SI_COUNT];
+
+const Sprite &itemSprite(ShopItem id);
+// Effects as display text, up to two lines such as "FOOD +35  JOY +3"; unused lines are empty strings.
+void itemEffectLines(ShopItem id, char line1[20], char line2[20]);
+
+// Shop order: cheapest first within each category
+extern const ShopItem SHOP_FOODS[12];
+extern const ShopItem SHOP_OTHERS[3];
 
 const int MAX_STACK = 9;
 const int MAX_RYO = 9999;

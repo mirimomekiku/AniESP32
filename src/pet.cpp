@@ -90,26 +90,31 @@ struct EvoRule {
   uint8_t minD, maxD;
   uint8_t minB;
   uint8_t minE;
+  uint8_t minJ;
   uint8_t form;
 };
 
 static const EvoRule EVO[] = {
-    // maxCM minD maxD minB minE  form
-    {1, 70, 100, 70, 0, ADULT_FOX},
-    {1, 70, 100, 0, 0, ADULT_TOAD},
-    {1, 0, 69, 0, 0, ADULT_WEASEL},
-    {3, 70, 100, 0, 0, ADULT_TOAD},
-    {3, 0, 69, 0, 0, ADULT_TANUKI},
-    {5, 0, 100, 0, 50, ADULT_HAWK},
-    {5, 0, 100, 0, 0, ADULT_SLUG},
-    {255, 50, 100, 0, 0, ADULT_CAT},
-    {255, 0, 49, 0, 0, ADULT_SNAKE},
+    // maxCM minD maxD minB minE minJ  form
+    {1, 70, 100, 70, 0, 0, ADULT_FOX},
+    {1, 70, 100, 0, 0, 0, ADULT_TOAD},
+    {1, 0, 69, 60, 0, 70, ADULT_RABBIT},
+    {1, 0, 69, 0, 0, 0, ADULT_WEASEL},
+    {3, 70, 100, 50, 0, 0, ADULT_SHEEP},
+    {3, 70, 100, 0, 0, 0, ADULT_TOAD},
+    {3, 0, 69, 0, 0, 70, ADULT_AXOLOTL},
+    {3, 0, 69, 0, 0, 0, ADULT_TANUKI},
+    {5, 0, 100, 0, 70, 0, ADULT_PENGUIN},
+    {5, 0, 100, 0, 50, 0, ADULT_HAWK},
+    {5, 0, 100, 0, 0, 0, ADULT_SLUG},
+    {255, 50, 100, 0, 0, 0, ADULT_CAT},
+    {255, 0, 49, 0, 0, 0, ADULT_SNAKE},
 };
 
 static uint8_t pickForm() {
   for (const EvoRule &r : EVO) {
     if (pet.careMistakes <= r.maxCM && pet.discipline >= r.minD && pet.discipline <= r.maxD && pet.bond >= r.minB &&
-        pet.energy >= r.minE)
+        pet.energy >= r.minE && pet.joy >= r.minJ)
       return r.form;
   }
   return ADULT_SNAKE;
@@ -284,26 +289,15 @@ static ActionResult guard(bool needAwake = true) {
   return RES_OK;
 }
 
-ActionResult petEat(float food, float joy) {
+ActionResult petConsume(int food, int joy, int energy, int discipline) {
   ActionResult g = guard();
   if (g != RES_OK) return g;
-  if (pet.food > 95) return RES_FULL;
+  if (food >= 10 && pet.food > 95) return RES_FULL;  // a real meal needs room
+  bool useful = (food > 0 && pet.food < 95) || (joy > 0 && pet.joy < 95) || (energy > 0 && pet.energy < 95) || discipline > 0;
+  if (!useful) return RES_NOT_NEEDED;
   pet.food = clampf(pet.food + food);
   pet.joy = clampf(pet.joy + joy);
-  return RES_OK;
-}
-
-ActionResult petRestoreEnergy(float amount) {
-  ActionResult g = guard();
-  if (g != RES_OK) return g;
-  if (pet.energy > 90) return RES_NOT_NEEDED;
-  pet.energy = clampf(pet.energy + amount);
-  return RES_OK;
-}
-
-ActionResult petTrain(float discipline) {
-  ActionResult g = guard();
-  if (g != RES_OK) return g;
+  pet.energy = clampf(pet.energy + energy);
   pet.discipline = clampf(pet.discipline + discipline);
   return RES_OK;
 }
@@ -419,7 +413,8 @@ const char *stageName() {
 }
 
 const char *adultName(int form) {
-  static const char *names[] = {"KITSUNE", "SAGE TOAD", "TANUKI", "SHADOW CAT", "RAIJU", "MOON SLUG", "HAWK", "SERPENT"};
+  static const char *names[] = {"KITSUNE", "SAGE TOAD", "TANUKI", "SHADOW CAT", "RAIJU", "MOON SLUG",
+                                "HAWK",    "SERPENT",   "MOON RABBIT", "AXOLOTL", "FROST PENGUIN", "CLOUD SHEEP"};
   return names[form];
 }
 
