@@ -54,6 +54,6 @@ the UI pastels with and without the tone curve; it is the quickest way to see wh
 | Symptom | Fix |
 |---------|-----|
 | First build very slow | It downloads the ESP32 toolchains and frameworks, several GB. One time only |
-| `region 'drom0_0_seg' overflowed` or flash overflow | Too much art for the app slot; the project already uses `huge_app.csv`. Reduce colours or sprites in `tools/make_assets.py` |
+| `region 'drom0_0_seg' overflowed` or flash overflow | Too much art for the app slot; the project already uses the 3.9 MB slot in `partitions.csv`. Reduce colours or sprites in `tools/make_assets.py` |
 | `#warning TOUCH_CS pin not defined` | Harmless, the touch controller uses its own library |
 | `ledcAttach` not found | Old Arduino-ESP32 core 2.x: the code has a fallback for it, make sure `ESP_ARDUINO_VERSION_MAJOR` is defined (use a recent platform) |

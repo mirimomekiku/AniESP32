@@ -151,18 +151,17 @@ of flash).
 
 ## Flash layout
 
-The firmware uses the `huge_app.csv` partition table:
+The firmware uses its own partition table, [`partitions.csv`](../partitions.csv):
 
 | Partition | Offset | Size | Use |
 |-----------|--------|------|-----|
 | nvs | 0x9000 | 20 KB | **Save data** (pet, player, clock, settings) |
-| otadata | 0xE000 | 8 KB | unused |
-| app0 | 0x10000 | **3 MB** | the firmware |
-| spiffs | 0x310000 | 896 KB | unused |
-| coredump | 0x3F0000 | 64 KB | |
+| otadata | 0xE000 | 8 KB | bootloader bookkeeping (no OTA slot) |
+| app0 | 0x10000 | **3.9 MB** | the firmware |
 
-Why: the generated art (about 1.5 MB of sprites and backgrounds) plus the Wi-Fi stack no longer fit in the default
-1.9 MB app slot. The firmware currently uses about 2.67 MB, roughly 85 % of the 3 MB slot. There is no OTA slot.
+Why: the generated art (300 pet frames, backgrounds, icons, about 2.4 MB) plus the Wi-Fi stack and code no longer fit
+in the stock 3 MB "huge app" slot, so there is no SPIFFS, no second OTA slot and no core dump partition. The
+firmware currently uses about 3.5 MB, roughly 86 % of the slot.
 
 The **NVS partition sits at the same address in every common partition table**, so switching tables does not erase
 your pet's save data. (Flashing with "erase flash" does.)

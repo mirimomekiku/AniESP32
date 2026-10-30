@@ -14,15 +14,20 @@ Both outputs are committed so the firmware builds without Python. Run the script
 ## Source sheets
 
 Sprite sheets are drawn on a **flat magenta (#FF00FF) background** in an equal-cell grid. Backgrounds are plain
-3:4 portrait images. Pets and foods live in `assets/v3/raw`, everything else in `assets/v2/raw`.
+3:4 portrait images. Pets and foods live in `assets/v3/raw` and `assets/v4/raw`, everything else in `assets/v2/raw`.
 
-### The 15 characters and their 12 poses
+### The 25 characters and their 12 poses
 
-The 15 characters, in grid order (5 columns x 3 rows, left to right, top to bottom): **baby, child, teen** (the fox
-growing line), then the **12 adult forms**: kitsune, sage toad, tanuki, shadow cat, raiju, moon slug, hawk, serpent,
-moon rabbit, axolotl, frost penguin, cloud sheep.
+Two character sets, each with its own sheets (`v3_*.png`, `v4_*.png`) and grid:
 
-Every pose is its own sheet with the **same 5 x 3 layout**:
+- **Set A**, `assets/v3/raw`, 5 columns x 3 rows = 15 characters, left to right, top to bottom: **baby, child, teen** (the
+  fox growing line), then 12 adults: kitsune, sage toad, tanuki, shadow cat, raiju, moon slug, hawk, serpent, moon
+  rabbit, axolotl, frost penguin, cloud sheep.
+- **Set B**, `assets/v4/raw`, 5 columns x 2 rows = 10 characters, all adults: red panda, jade dragon, koi spirit, crane,
+  hedgehog, capybara, octopus, tortoise, panda, bat.
+
+Every pose is its own sheet with the **same layout as its set's base sheet** (the table lists the `v3_` names; the `v4_` set
+has the same twelve):
 
 | Sheet | Pose |
 |-------|------|
@@ -35,7 +40,7 @@ Every pose is its own sheet with the **same 5 x 3 layout**:
 | `v3_clean1.png`, `v3_clean2.png` | `CLEAN_A` (lathered), `CLEAN_B` (shaking off water) |
 | `v3_happy.png`, `v3_sad.png` | `HAPPY`, `SAD` |
 
-All 96x96, 180 frames in total.
+All 96x96, 300 frames in total (25 characters x 12 poses).
 
 ### Everything else
 
@@ -78,7 +83,7 @@ that is currently not shown in the menu; it is kept so the sheet layout stays st
    as `(count, index)` byte pairs, with index 0 = transparent. The blitters draw straight from the runs.
 7. **Backgrounds** are resized to 240x320 and quantised to 96 colours (stored raw).
 
-The converter also writes `assets/preview/pets_contact.png`, a contact sheet of all 15 characters x 12 poses. Open it
+The converter also writes `assets/preview/pets_contact.png`, a contact sheet of all 25 characters x 12 poses. Open it
 after every run to check the slicing.
 
 ### Generated API

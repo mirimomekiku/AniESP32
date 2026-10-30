@@ -7,7 +7,7 @@ unless you build with `DEBUG_FAST` (60x). Most balance constants live at the top
 ## Life cycle
 
 ```
-Egg -> Baby -> Child -> Teen -> Adult (12 possible forms)
+Egg -> Baby -> Child -> Teen -> Adult (22 possible forms)
                  \_______________/
                   neglect -> Ghost -> tap the spirit for a new egg
 ```
@@ -92,27 +92,40 @@ Ignoring it costs a care mistake and 5 discipline.
 ## Evolution
 
 Decided when the teen stage ends. The first matching row wins. `CM` is care mistakes, `D` discipline, `B` bond,
-`J` joy, `E` energy at that moment.
+`J` joy, `E` energy and `F` food at that moment. Higher thresholds are rarer, so the best forms need excellent care.
 
 | # | Condition | Form |
 |---|-----------|------|
-| 1 | CM <= 1, D >= 70, B >= 70 | **Kitsune** (nine-tail fox) |
-| 2 | CM <= 1, D >= 70 | **Sage Toad** |
-| 3 | CM <= 1, D < 70, B >= 60, J >= 70 | **Moon Rabbit** |
-| 4 | CM <= 1, D < 70 | **Raiju** (lightning weasel) |
-| 5 | CM <= 3, D >= 70, B >= 50 | **Cloud Sheep** |
-| 6 | CM <= 3, D >= 70 | **Sage Toad** |
-| 7 | CM <= 3, D < 70, J >= 70 | **Axolotl** |
-| 8 | CM <= 3, D < 70 | **Tanuki** |
-| 9 | CM <= 5, E >= 70 | **Frost Penguin** |
-| 10 | CM <= 5, E >= 50 | **Hawk** |
-| 11 | CM <= 5 | **Moon Slug** |
-| 12 | any CM, D >= 50 | **Shadow Cat** |
-| 13 | any CM, D < 50 | **Serpent** |
+| 1 | CM = 0, D >= 85, B >= 85, J >= 80 | **Jade Dragon** (the rarest) |
+| 2 | CM <= 1, D >= 70, B >= 70 | **Kitsune** (nine-tail fox) |
+| 3 | CM <= 1, D >= 70, E >= 70 | **Crane** |
+| 4 | CM <= 1, D >= 70 | **Sage Toad** |
+| 5 | CM <= 1, D < 70, B >= 60, J >= 70 | **Moon Rabbit** |
+| 6 | CM <= 1, D < 70, B >= 60 | **Panda** |
+| 7 | CM <= 1, D < 70, J >= 70 | **Koi Spirit** |
+| 8 | CM <= 1, D < 70 | **Raiju** (lightning weasel) |
+| 9 | CM <= 3, D >= 70, B >= 50 | **Cloud Sheep** |
+| 10 | CM <= 3, D >= 70, F >= 70 | **Tortoise** |
+| 11 | CM <= 3, D >= 70 | **Sage Toad** |
+| 12 | CM <= 3, D < 70, J >= 70, B >= 50 | **Capybara** |
+| 13 | CM <= 3, D < 70, J >= 70 | **Axolotl** |
+| 14 | CM <= 3, D < 70 | **Tanuki** |
+| 15 | CM <= 5, E >= 70 | **Frost Penguin** |
+| 16 | CM <= 5, E >= 50 | **Hawk** |
+| 17 | CM <= 5, J >= 50 | **Octopus** |
+| 18 | CM <= 5, F >= 60 | **Hedgehog** |
+| 19 | CM <= 5 | **Moon Slug** |
+| 20 | any CM, D >= 50, E >= 60 | **Red Panda** |
+| 21 | any CM, D >= 50 | **Shadow Cat** |
+| 22 | any CM, D < 50, B >= 40 | **Bat** |
+| 23 | any CM, D < 50 | **Serpent** |
+
+(Rows 4 and 11 are the same form, reached with different care, so there are 22 forms in 23 rows.)
 
 Raise **discipline** by scolding tantrums (+12 each), using training scrolls (+10), shuriken training and the
-training mission. Raise **bond** by playing, completing missions and tapping the pet. Keep **joy** high (feed it
-treats and play) for the rabbit and axolotl.
+training mission. Raise **bond** by playing, completing missions and tapping the pet. Keep **joy** high (treats and play)
+for the rabbit, koi, capybara and axolotl, and keep it **fed** for the tortoise and hedgehog. The DEX shows the
+condition for every form once you tap its card.
 
 ## Animations
 
@@ -233,5 +246,5 @@ simulated time.
 
 ## DEX
 
-A permanent album of the 12 adult forms, six per page. Unlocked forms show their sprite; locked ones a silhouette. Tapping a card
+A permanent album of the 22 adult forms, six per page (four pages). Unlocked forms show their sprite; locked ones a silhouette. Tapping a card
 shows the evolution hint. The DEX also counts how many adults you have raised in total. It survives deaths.

@@ -116,7 +116,7 @@ colour run, not per pixel:
 | `blitSpriteHalf` | Smooth 2:1 reduction (DEX thumbnails, small pet), optional flip |
 | `blitSilhouette[Scaled]` | Single-colour shape (locked DEX entries) |
 
-Pets are 96x96 (15 characters x 12 poses in `PET_SPRITES[character][pose]`), items, foods and UI icons 32x32, menu badges 72x72, room icons 44x44, decorations 24x24. Backgrounds are
+Pets are 96x96 (25 characters x 12 poses in `PET_SPRITES[character][pose]`), items, foods and UI icons 32x32, menu badges 72x72, room icons 44x44, decorations 24x24. Backgrounds are
 240x320 palette-indexed (96 colours) and drawn row by row; the village palette is **tinted** per time of day before
 drawing (day, dusk, night, dawn).
 
@@ -157,7 +157,7 @@ Stored in the ESP32's NVS flash under the namespace **`tama`** with `Preferences
 | `pet` | blob | The whole `Pet` struct. Version byte = `SAVE_VERSION` (currently 2); a size or version mismatch discards it and starts a new egg |
 | `mission` | blob | Whether a mission is running, which one, seconds left |
 | `player` | blob | Ryo and the bag (15 item counters). Version 2; a version-1 blob (6 items) is migrated on load |
-| `albumw`, `raised` | ushort, ushort | DEX unlock bitmask (12 bits; older saves used an 8-bit `album` key, still read), adults raised |
+| `albumd`, `raised` | uint, ushort | DEX unlock bitmask (one bit per form, 22 used; older saves used 8-bit `album` and 16-bit `albumw` keys, still read), adults raised |
 | `epoch` | ulong | Last saved time (the board has no RTC) |
 | `h24`, `alH`, `alM`, `alOn` | settings | 24 h display, alarm hour, minute, enabled |
 | `ldrLo`, `ldrHi` | int | Learned light-sensor range |
@@ -170,8 +170,8 @@ Saves happen every 60 seconds and after each action. Changing the `Pet` struct r
 | | |
 |---|---|
 | RAM | about 63 KB static of 320 KB; the largest runtime allocation is a 77 KB view sprite |
-| Flash | about 2.67 MB of the 3 MB app slot (85 %): roughly 1.1 MB code and libraries, 1.5 MB generated art |
-| Sprites | 180 pet frames (RLE, about 2-4 KB each), backgrounds 8 x 77 KB raw |
+| Flash | about 3.5 MB of the 3.9 MB app slot (86 %): roughly 1.1 MB code and libraries, 2.4 MB generated art |
+| Sprites | 300 pet frames (RLE, about 3-4 KB each), backgrounds 8 x 77 KB raw |
 
 ## Hardware access
 

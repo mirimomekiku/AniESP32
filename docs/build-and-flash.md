@@ -52,7 +52,7 @@ sudo chmod a+rw /dev/ttyUSB0
 
 - Hold **BOOT** while plugging in if the board is not detected, or if the auto-reset is flaky.
 - If flashing fails at 921600 baud, set `upload_speed = 460800` (or 115200) in `platformio.ini`.
-- Flash size: the project uses the `huge_app.csv` partition table (3 MB app). It keeps the NVS area where it was, so
+- Flash size: the project uses its own `partitions.csv` (3.9 MB app, no OTA). It keeps the NVS area where it was, so
   switching tables does not erase your pet. See [Hardware: flash layout](hardware.md#flash-layout).
 
 ## Configuration

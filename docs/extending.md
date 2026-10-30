@@ -26,16 +26,17 @@ Use `pio run -e cyd-fast` to test timing changes quickly.
 
 A form is one more character with all 12 poses.
 
-1. Draw it into every sheet of the 5x3 grid (`v3_base.png` and the 11 pose sheets in `assets/v3/raw`), keeping the
-   cell order. Easiest is to regenerate the set with the new character included, using the base sheet as the
-   reference. The grid has 15 cells (3 growing stages + 12 forms); a 13th form needs a bigger grid, so change the
-   `slice_sheet(..., 5, 3, ...)` calls and `CHARS` in `tools/make_assets.py`.
-2. Add the name to `CHARS` in `tools/make_assets.py`, run the script. `ADULT_COUNT`, `CH_*` and `PET_SPRITES` update.
+1. Pick the set. `tools/make_assets.py` reads two character sets (`CHAR_SETS`): set A (`assets/v3/raw`, 5x3 grid, 15
+   characters) and set B (`assets/v4/raw`, 5x2 grid, 10 characters). To add characters, either replace one in a
+   sheet, or add a **third set**: a base sheet plus the 11 pose sheets with a new prefix, one more entry in
+   `CHAR_SETS` and the names appended to `CHARS`. Generate the pose sheets with the base sheet as the reference image.
+2. Add the name to the set in `tools/make_assets.py` and run it. `ADULT_COUNT`, `CH_*` and `PET_SPRITES` update.
 3. Add its display name in `adultName()` and a row in the `EVO[]` table in `src/pet.cpp` (first match wins, so put
-   it before the more general rows).
-4. Add its hint to `albumHint()` in `src/album.cpp` and a ramp to the `ramps[]` table in the DEX drawing code.
+   it before the more general rows). Each rule can test care mistakes, discipline, bond, energy, joy and food.
+4. Add its hint to `albumHint()` in `src/album.cpp`.
 
-The DEX mask is 16 bits, so up to 16 forms work; the DEX shows 6 per page and pages automatically.
+The DEX bitmask is 32 bits and the screen pages automatically (six forms per page). Check the flash budget: each
+character adds about 12 x 3.5 KB; the app slot is 3.9 MB (see [Hardware](hardware.md#flash-layout)).
 
 ## Add a room
 
