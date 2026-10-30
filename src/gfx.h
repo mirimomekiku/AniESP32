@@ -88,12 +88,23 @@ class ButtonRow {
   void press(int i);
   void update();  // releases the pressed look after a moment
   void setY(int y) { y_ = y; }  // top edge of the row (default BTN_Y)
+  // Compact pills (30 px tall: small icon beside the label). bg/pal, if given, are restored behind the row.
+  void setCompact(int y, const uint8_t *bg = nullptr, const uint16_t *pal = nullptr) {
+    y_ = y;
+    h_ = 30;
+    compact_ = true;
+    bg_ = bg;
+    bgPal_ = pal;
+  }
 
  private:
   BtnDef defs_[6];
   int n_ = 0;
   int pressed_ = -1;
-  int y_ = BTN_Y;
+  int y_ = BTN_Y, h_ = BTN_H;
+  bool compact_ = false;
+  const uint8_t *bg_ = nullptr;
+  const uint16_t *bgPal_ = nullptr;
   uint32_t until_ = 0;
   void drawOne(int i, bool pressed);
 };

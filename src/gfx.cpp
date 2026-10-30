@@ -360,8 +360,25 @@ void ButtonRow::drawOne(int i, bool pressed) {
   int w = (SCREEN_W - 2 * BTN_MARGIN - BTN_GAP * (n_ - 1)) / n_;
   int x = BTN_MARGIN + i * (w + BTN_GAP);
   const BtnDef &d = defs_[i];
-  tft.fillRect(x - 1, y_ - 1, w + 2, BTN_H + 2, C_OUT);  // clear to the strip colour
-  gradPanel(&tft, x, y_, w, BTN_H - 4, d.ramp, 6, 4, pressed);
+  if (compact_) {
+    // restore what is behind the pill, then draw it: a 26 px body with a 4 px lip
+    if (bg_) drawBgRegion(bg_, bgPal_, x - 1, y_ - 1, w + 2, h_ + 2);
+    else tft.fillRect(x - 1, y_ - 1, w + 2, h_ + 2, C_OUT);
+    gradPanel(&tft, x, y_, w, h_ - 4, d.ramp, 4, 3, pressed, 4);
+    int off = pressed ? 3 : 0;
+    int cy = y_ + (h_ - 4) / 2 + off;
+    if (d.icon) {
+      int tw = textWidth(FONT_SILK, d.label, 1);
+      int sx = x + (w - (16 + 3 + tw)) / 2;
+      blitSpriteHalf(&tft, *d.icon, sx, cy - 8);  // the 32 px icon averaged down to 16
+      drawTextC(&tft, FONT_SILK, d.label, sx + 19, cy, 1, C_WHITE, C_OUT, TXT_LEFTX | TXT_OUTLINE);
+    } else {
+      drawTextC(&tft, FONT_CHUNK, d.label, x + w / 2, cy, 1, C_WHITE, C_OUT, TXT_OUTLINE);
+    }
+    return;
+  }
+  tft.fillRect(x - 1, y_ - 1, w + 2, h_ + 2, C_OUT);  // clear to the strip colour
+  gradPanel(&tft, x, y_, w, h_ - 4, d.ramp, 6, 4, pressed);
   int off = pressed ? 4 : 0;
   if (d.icon) {
     blitSprite(&tft, *d.icon, x + (w - 32) / 2, y_ + 4 + off);
@@ -372,12 +389,16 @@ void ButtonRow::drawOne(int i, bool pressed) {
 }
 
 void ButtonRow::draw() {
-  tft.fillRect(0, y_ - 2, SCREEN_W, BTN_H + 4, C_OUT);
+  if (compact_) {
+    if (bg_) drawBgRegion(bg_, bgPal_, 0, y_ - 2, SCREEN_W, h_ + 4);
+  } else {
+    tft.fillRect(0, y_ - 2, SCREEN_W, h_ + 4, C_OUT);
+  }
   for (int i = 0; i < n_; i++) drawOne(i, false);
 }
 
 int ButtonRow::hit(int x, int y) const {
-  if (y < y_ || y >= y_ + BTN_H) return -1;
+  if (y < y_ || y >= y_ + h_) return -1;
   int w = (SCREEN_W - 2 * BTN_MARGIN - BTN_GAP * (n_ - 1)) / n_;
   for (int i = 0; i < n_; i++) {
     int bx = BTN_MARGIN + i * (w + BTN_GAP);
