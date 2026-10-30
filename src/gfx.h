@@ -14,6 +14,7 @@ const int SCREEN_W = 240, SCREEN_H = 320;
 const int NAV_H = 40, NAV_Y = 280;      // nav bar along the bottom
 const int HUD_Y = 4, HUD_H = 34;        // stat bars along the top
 const int BTN_Y = 214, BTN_H = 60;      // default position of a ButtonRow (just above the nav bar)
+const int PAGE_Y = 276, PAGE_H = 40;    // BACK / NEXT page bar along the bottom of paged screens
 
 // ---- palette (RGB565), set in gfxInit() ----
 extern uint16_t C_OUT, C_TEXT, C_WHITE, C_CREAM, C_SHADOW, C_GOLD;
@@ -37,7 +38,7 @@ bool gfxMakeView(int w, int h);
 // 3D edge under it; pressed panels sit flush (no lip) and lose the highlight.
 void gradPanel(TFT_eSPI *dst, int x, int y, int w, int h, Ramp r, int bands = 5, int lip = 0, bool pressed = false, int radius = 4);
 
-// ---- sprites (palette indexed, index 0 transparent) ----
+// ---- sprites (palette indexed + run-length encoded, index 0 transparent) ----
 void blitSprite(TFT_eSPI *dst, const Sprite &s, int x, int y);
 void blitSpriteScaled(TFT_eSPI *dst, const Sprite &s, int x, int y, int dw, int dh, bool flipX = false);  // nearest neighbour
 void blitSpriteHalf(TFT_eSPI *dst, const Sprite &s, int x, int y, bool flipX = false);  // smooth 2:1 reduction
@@ -63,6 +64,10 @@ void drawGradientBg(Ramp r, int bands = 16);
 
 enum { TAB_HOME, TAB_MENU, TAB_CLOCK, TAB_COUNT };
 void drawNav(int activeTab);  // TAB_*; the bar sits at the bottom of the screen
+
+// BACK / page counter / NEXT along the bottom, for screens whose content spans several pages
+void pageNavDraw(int page, int pages);
+int pageNavHit(int x, int y, int page, int pages);  // -1 = none, 0 = previous page, 1 = next page
 
 struct BtnDef {
   const char *label;

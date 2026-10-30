@@ -123,47 +123,48 @@ void gradPanel(TFT_eSPI *d, int x, int y, int w, int h, Ramp ramp, int bands, in
 }
 
 // ---- sprites ----
-void blitSprite(TFT_eSPI *d, const Sprite &s, int x, int y) {
+// Calls f(x, y, runLength, paletteIndex) for every run of a row-wise RLE sprite (transparent runs included).
+template <typename F>
+static inline void eachRun(const Sprite &s, F f) {
+  const uint8_t *p = s.rle;
   for (int j = 0; j < s.h; j++) {
-    const uint8_t *row = s.px + j * s.w;
-    int i = 0;
-    while (i < s.w) {
-      uint8_t v = row[i];
-      if (!v) { i++; continue; }
-      int k = i + 1;
-      while (k < s.w && row[k] == v) k++;
-      d->fillRect(x + i, y + j, k - i, 1, fx(s.pal[v]));
-      i = k;
+    int x = 0;
+    while (x < s.w) {
+      uint8_t n = *p++, v = *p++;
+      f(x, j, n, v);
+      x += n;
     }
   }
+}
+
+void blitSprite(TFT_eSPI *d, const Sprite &s, int x, int y) {
+  eachRun(s, [&](int rx, int j, int n, int v) {
+    if (v) d->fillRect(x + rx, y + j, n, 1, fx(s.pal[v]));
+  });
 }
 
 void blitSpriteScaled(TFT_eSPI *d, const Sprite &s, int x, int y, int dw, int dh, bool flipX) {
-  for (int j = 0; j < s.h; j++) {
+  eachRun(s, [&](int rx, int j, int n, int v) {
+    if (!v) return;
     int y0 = j * dh / s.h, y1 = (j + 1) * dh / s.h;
-    if (y1 == y0) continue;
-    const uint8_t *row = s.px + j * s.w;
-    int i = 0;
-    while (i < s.w) {
-      uint8_t v = row[i];
-      if (!v) { i++; continue; }
-      int k = i + 1;
-      while (k < s.w && row[k] == v) k++;
-      int x0 = i * dw / s.w, x1 = k * dw / s.w;
-      if (flipX) { int t = dw - x0; x0 = dw - x1; x1 = t; }
-      if (x1 > x0) d->fillRect(x + x0, y + y0, x1 - x0, y1 - y0, fx(s.pal[v]));
-      i = k;
-    }
-  }
+    if (y1 == y0) return;
+    int x0 = rx * dw / s.w, x1 = (rx + n) * dw / s.w;
+    if (flipX) { int t = dw - x0; x0 = dw - x1; x1 = t; }
+    if (x1 > x0) d->fillRect(x + x0, y + y0, x1 - x0, y1 - y0, fx(s.pal[v]));
+  });
 }
 
 void blitSpriteHalf(TFT_eSPI *d, const Sprite &s, int x, int y, bool flipX) {
+  static uint8_t px[96 * 96];  // decoded copy: the 2:1 average needs random access
+  eachRun(s, [&](int rx, int j, int n, int v) {
+    for (int k = 0; k < n; k++) px[j * s.w + rx + k] = v;
+  });
   for (int j = 0; j + 1 < s.h; j += 2) {
     for (int i = 0; i + 1 < s.w; i += 2) {
       int n = 0, r = 0, g = 0, b = 0;
       for (int dj = 0; dj < 2; dj++)
         for (int di = 0; di < 2; di++) {
-          uint8_t v = s.px[(j + dj) * s.w + i + di];
+          uint8_t v = px[(j + dj) * s.w + i + di];
           if (!v) continue;
           uint16_t c = fx(s.pal[v]);
           r += (c >> 11) & 31;
@@ -177,34 +178,19 @@ void blitSpriteHalf(TFT_eSPI *d, const Sprite &s, int x, int y, bool flipX) {
 }
 
 void blitSilhouette(TFT_eSPI *d, const Sprite &s, int x, int y, uint16_t color) {
-  for (int j = 0; j < s.h; j++) {
-    const uint8_t *row = s.px + j * s.w;
-    int i = 0;
-    while (i < s.w) {
-      if (!row[i]) { i++; continue; }
-      int k = i + 1;
-      while (k < s.w && row[k]) k++;
-      d->fillRect(x + i, y + j, k - i, 1, color);
-      i = k;
-    }
-  }
+  eachRun(s, [&](int rx, int j, int n, int v) {
+    if (v) d->fillRect(x + rx, y + j, n, 1, color);
+  });
 }
 
 void blitSilhouetteScaled(TFT_eSPI *d, const Sprite &s, int x, int y, int dw, int dh, uint16_t color) {
-  for (int j = 0; j < s.h; j++) {
+  eachRun(s, [&](int rx, int j, int n, int v) {
+    if (!v) return;
     int y0 = j * dh / s.h, y1 = (j + 1) * dh / s.h;
-    if (y1 == y0) continue;
-    const uint8_t *row = s.px + j * s.w;
-    int i = 0;
-    while (i < s.w) {
-      if (!row[i]) { i++; continue; }
-      int k = i + 1;
-      while (k < s.w && row[k]) k++;
-      int x0 = i * dw / s.w, x1 = k * dw / s.w;
-      if (x1 > x0) d->fillRect(x + x0, y + y0, x1 - x0, y1 - y0, color);
-      i = k;
-    }
-  }
+    if (y1 == y0) return;
+    int x0 = rx * dw / s.w, x1 = (rx + n) * dw / s.w;
+    if (x1 > x0) d->fillRect(x + x0, y + y0, x1 - x0, y1 - y0, color);
+  });
 }
 
 void drawGradientBg(Ramp r, int bands) {
@@ -326,6 +312,29 @@ void drawNav(int activeTab) {
     if (icons[i]) blitSprite(&tft, *icons[i], x + (w - 32) / 2, NAV_Y + 2 + (h - 32) / 2 + off);
     else drawMenuGlyph(x + w / 2, NAV_Y + 2 + h / 2 + off);
   }
+}
+
+// ---- page bar ----
+static void pageButton(int x, int w, const char *label, bool enabled) {
+  gradPanel(&tft, x, PAGE_Y, w, PAGE_H - 4, enabled ? R_SKY : R_GREY, 4, 3);
+  drawText(&tft, FONT_SILK, label, x + w / 2, PAGE_Y + 12, 2, enabled ? C_WHITE : C_TEXT, enabled ? C_OUT : C_WHITE,
+           enabled ? (TXT_CENTER | TXT_OUTLINE) : (TXT_CENTER | TXT_SHADOW));
+}
+
+void pageNavDraw(int page, int pages) {
+  tft.fillRect(0, PAGE_Y - 4, SCREEN_W, PAGE_H + 8, C_OUT);
+  pageButton(4, 92, "< BACK", page > 0);
+  pageButton(144, 92, "NEXT >", page < pages - 1);
+  char buf[12];
+  snprintf(buf, sizeof(buf), "%d/%d", page + 1, pages);
+  drawText(&tft, FONT_CHUNK, buf, 120, PAGE_Y + 12, 1, C_WHITE, C_OUT, TXT_CENTER | TXT_OUTLINE);
+}
+
+int pageNavHit(int x, int y, int page, int pages) {
+  if (y < PAGE_Y || y >= PAGE_Y + PAGE_H) return -1;
+  if (x < 100 && page > 0) return 0;
+  if (x >= 140 && page < pages - 1) return 1;
+  return -1;
 }
 
 // ---- ButtonRow ----
