@@ -199,9 +199,9 @@ bool clockIsNight() {
 
 // ---- clock screen ----
 // Date pill, a glass panel with the time and a seconds progress bar, two status pills (alarm, sync) and a row of
-// compact buttons. Everything animated lives in one view sprite.
-static const int CLK_VX = 0, CLK_VY = 4, CLK_VW = 240, CLK_VH = 160;
-static const int BTN_ROW_Y = 172;
+// compact buttons just above the bottom bar. Everything animated lives in one view sprite.
+static const int CLK_VX = 0, CLK_VY = 36, CLK_VW = 240, CLK_VH = 160;
+static const int BTN_ROW_Y = NAV_Y - 30 - 4;  // compact buttons sit just above the bottom bar
 static const char *DAYS[7] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 static const char *MONTHS[12] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
 static ButtonRow buttons;
@@ -237,16 +237,29 @@ static void clockEnter() {
 }
 
 // A small dark-glass pill with centred text
-static void glassPill(int x, int y, int w, int h, const char *text, uint16_t color, const Sprite *icon = nullptr) {
+static void glassPill(int x, int y, int w, int h, const char *text, uint16_t color, const Sprite *icon = nullptr, int scale = 1) {
   static Ramp dark = {rgb(70, 56, 150), rgb(44, 34, 104)};
   gradPanel(&view, x, y, w, h, dark, 4, 0, false, 4);
-  int tw = textWidth(FONT_SILK, text, 1) + (icon ? 19 : 0);
+  int tw = textWidth(FONT_SILK, text, scale) + (icon ? 19 : 0);
   int sx = x + (w - tw) / 2;
   if (icon) {
     blitSpriteHalf(&view, *icon, sx, y + h / 2 - 8);
     sx += 19;
   }
-  drawTextC(&view, FONT_SILK, text, sx, y + h / 2, 1, color, C_OUT, TXT_LEFTX | TXT_OUTLINE);
+  drawTextC(&view, FONT_SILK, text, sx, y + h / 2, scale, color, C_OUT, TXT_LEFTX | TXT_OUTLINE);
+}
+
+// The time as two 2-digit groups with a steady pixel colon between them (no ticking), centred on cx.
+static void drawBigTime(int cx, int cy, const char *hh, const char *mm, uint16_t fill) {
+  const int S = 6, GROUP = 2 * 8 * S, GAP = 22;
+  int left = cx - (2 * GROUP + GAP) / 2;
+  drawTextC(&view, FONT_CHUNK, hh, left + GROUP / 2, cy, S, fill, C_OUT, TXT_OUTLINE);
+  drawTextC(&view, FONT_CHUNK, mm, left + GROUP + GAP + GROUP / 2, cy, S, fill, C_OUT, TXT_OUTLINE);
+  for (int k = 0; k < 2; k++) {  // the colon: two outlined pixel squares
+    int sx = cx - 5, sy = cy + (k ? 8 : -18);
+    view.fillRect(sx, sy, 10, 10, C_OUT);
+    view.fillRect(sx + 2, sy + 2, 6, 6, fill);
+  }
 }
 
 static void clockDraw() {
@@ -266,49 +279,49 @@ static void clockDraw() {
   // date pill with a twinkling sparkle on each side
   char date[24];
   snprintf(date, sizeof(date), "%s %02d %s %d", DAYS[tm.tm_wday], tm.tm_mday, MONTHS[tm.tm_mon], tm.tm_year + 1900);
-  int dw = textWidth(FONT_SILK, date, 1) + 26;
-  glassPill((CLK_VW - dw) / 2, 0, dw, 20, date, C_WHITE);
-  if (tm.tm_sec % 2 == 0) {
-    blitSprite(&view, DECOR_FRAMES[DECOR_SPARKLE], (CLK_VW - dw) / 2 - 28, -2);
-    blitSprite(&view, DECOR_FRAMES[DECOR_PLUS], (CLK_VW + dw) / 2 + 4, -2);
+  int dw = textWidth(FONT_SILK, date, 2) + 26;
+  glassPill((CLK_VW - dw) / 2, 0, dw, 26, date, C_WHITE, nullptr, 2);
+  if (tm.tm_sec % 2 == 0) {  // the sparkles twinkle; the time itself does not blink
+    blitSprite(&view, DECOR_FRAMES[DECOR_SPARKLE], max(0, (CLK_VW - dw) / 2 - 26), 0);
+    blitSprite(&view, DECOR_FRAMES[DECOR_PLUS], min(CLK_VW - 24, (CLK_VW + dw) / 2 + 2), 0);
   }
 
   // glass panel with the time
   static Ramp glass = {rgb(96, 80, 186), rgb(58, 44, 128)};
-  gradPanel(&view, 8, 26, 224, 92, glass, 6, 0, false, 5);
+  gradPanel(&view, 8, 32, 224, 96, glass, 6, 0, false, 5);
 
   int hour = alarmMode ? alarmH : tm.tm_hour;
   int minute = alarmMode ? alarmM : tm.tm_min;
   bool pm = hour >= 12;
   if (!use24h) hour = hour % 12 == 0 ? 12 : hour % 12;
 
-  char buf[12];
-  bool colon = setMode || alarmMode || (tm.tm_sec % 2 == 0);
-  snprintf(buf, sizeof(buf), use24h ? "%02d%c%02d" : "%2d%c%02d", hour, colon ? ':' : ' ', minute);
-  drawTextC(&view, FONT_CHUNK, buf, 120, 62, 5, flash ? R_PINK.top : C_CREAM, C_OUT, TXT_OUTLINE);
+  char hh[4], mm[4], buf[12];
+  snprintf(hh, sizeof(hh), use24h ? "%02d" : "%2d", hour);
+  snprintf(mm, sizeof(mm), "%02d", minute);
+  drawBigTime(CLK_VW / 2, 71, hh, mm, flash ? R_PINK.top : C_CREAM);
   if (!use24h) {  // AM / PM chip in the corner of the panel
-    gradPanel(&view, 190, 31, 36, 15, R_BUTTER, 3, 0, false, 3);
-    drawTextC(&view, FONT_SILK, pm ? "PM" : "AM", 208, 38, 1, C_WHITE, C_OUT, TXT_OUTLINE);
+    gradPanel(&view, 194, 36, 34, 15, R_BUTTER, 3, 0, false, 3);
+    drawTextC(&view, FONT_SILK, pm ? "PM" : "AM", 211, 43, 1, C_WHITE, C_OUT, TXT_OUTLINE);
   }
 
   // seconds progress bar (or the alarm state while setting the alarm)
   if (alarmMode) {
-    drawTextC(&view, FONT_SILK, alarmOn ? "ALARM ON" : "ALARM OFF", 120, 104, 1, alarmOn ? R_MINT.top : R_PINK.top, C_OUT, TXT_OUTLINE);
+    drawTextC(&view, FONT_SILK, alarmOn ? "ALARM ON" : "ALARM OFF", 120, 113, 2, alarmOn ? R_MINT.top : R_PINK.top, C_OUT, TXT_OUTLINE);
   } else {
-    const int bx = 20, bw = 168, by = 100;
-    view.fillRect(bx, by, bw, 9, C_OUT);
-    view.fillRect(bx + 1, by + 1, bw - 2, 7, rgb(40, 30, 96));
+    const int bx = 18, bw = 156, by = 109;
+    view.fillRect(bx, by, bw, 10, C_OUT);
+    view.fillRect(bx + 1, by + 1, bw - 2, 8, rgb(40, 30, 96));
     int fw = (bw - 4) * (tm.tm_sec + 1) / 60;
-    for (int row = 0; row < 5; row++) view.fillRect(bx + 2, by + 2 + row, fw, 1, mix565(R_PINK.top, R_PINK.bot, row * 64));
+    for (int row = 0; row < 6; row++) view.fillRect(bx + 2, by + 2 + row, fw, 1, mix565(R_PINK.top, R_PINK.bot, row * 50));
     snprintf(buf, sizeof(buf), "%02d", tm.tm_sec);
-    drawTextC(&view, FONT_CHUNK, buf, 218, by + 4, 1, R_PINK.top, C_OUT, TXT_OUTLINE);
+    drawTextC(&view, FONT_CHUNK, buf, 204, by + 5, 2, R_PINK.top, C_OUT, TXT_OUTLINE);
   }
 
   // status pills: alarm on the left, what the clock is doing on the right
   char alarmText[16];
   if (alarmOn) snprintf(alarmText, sizeof(alarmText), "%02d:%02d", alarmH, alarmM);
   else snprintf(alarmText, sizeof(alarmText), "OFF");
-  glassPill(8, 124, 108, 22, alarmText, alarmOn ? R_BUTTER.top : R_GREY.bot, &UI_FRAMES[UI_BELL]);
+  glassPill(8, 136, 108, 22, alarmText, alarmOn ? R_BUTTER.top : R_GREY.bot, &UI_FRAMES[UI_BELL]);
 
   char status[24] = "";
   uint16_t scol = R_MINT.top;
@@ -321,7 +334,7 @@ static void clockDraw() {
 #if USE_LDR
   else snprintf(status, sizeof(status), ldrReliable() ? "LIGHT %d" : "LIGHT ?", ldrRaw());
 #endif
-  if (status[0]) glassPill(124, 124, 108, 22, status, scol);
+  if (status[0]) glassPill(124, 136, 108, 22, status, scol);
 
   view.pushSprite(CLK_VX, CLK_VY);
 }
