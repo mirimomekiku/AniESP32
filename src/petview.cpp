@@ -177,33 +177,48 @@ void pvDrawEffects(TFT_eSPI *d, int cx, int floorY, int petH) {
   }
 }
 
-void pvDrawBubble(TFT_eSPI *d, int vw, int y) {
+void pvDrawBubble(TFT_eSPI *d, int vw, int anchorX, int anchorTopY) {
   const char *m = pvMessage();
   if (!m) return;
+  const int H = 30, TAIL = 6;
   int w = textWidth(FONT_SILK, m, 2) + 20;
-  int bx = (vw - w) / 2;
-  gradPanel(d, bx, y, w, 30, R_CREAM, 3, 0);
-  d->fillRect(vw / 2 - 5, y + 30, 10, 4, C_OUT);
-  d->fillRect(vw / 2 - 3, y + 28, 6, 5, C_CREAM);
-  drawText(d, FONT_SILK, m, vw / 2, y + 10, 2, C_TEXT, C_WHITE, TXT_CENTER);
+  int bx = constrain(anchorX - w / 2, 2, vw - w - 2);
+  int by = max(2, anchorTopY - H - TAIL - 2);
+  gradPanel(d, bx, by, w, H, R_CREAM, 3, 0);
+  int tx = constrain(anchorX, bx + 10, bx + w - 10);  // the tail points at the pet
+  d->fillRect(tx - 5, by + H, 10, 4, C_OUT);
+  d->fillRect(tx - 3, by + H - 2, 6, 5, C_CREAM);
+  d->fillRect(tx - 2, by + H + 4, 4, 2, C_OUT);
+  drawText(d, FONT_SILK, m, bx + w / 2, by + 10, 2, C_TEXT, C_WHITE, TXT_CENTER);
 }
 
-void pvDrawNeedBubble(TFT_eSPI *d, int vw) {
-  Need n = petNeed();
-  if (n == NEED_NONE || pet.sleeping || (millis() / 500) % 5 == 4) return;
-  const Sprite *icon = nullptr;
+// ---- need label ----
+static int shownNeed = -2;  // -2 = nothing known on screen
+
+static const char *needText(Need n) {
   switch (n) {
-    case NEED_SICK: icon = &ITEM_FRAMES[ITEM_SKULL]; break;
-    case NEED_HUNGER: icon = &ITEM_FRAMES[ITEM_RAMEN]; break;
-    case NEED_POOP: icon = &ITEM_FRAMES[ITEM_POOP]; break;
-    case NEED_BORED: icon = &UI_FRAMES[UI_BALL]; break;
-    case NEED_SLEEPY: icon = &UI_FRAMES[UI_MOON]; break;
-    default: break;
+    case NEED_SICK: return "FEELS ILL";
+    case NEED_HUNGER: return "HUNGRY!";
+    case NEED_POOP: return "TOO DIRTY!";
+    case NEED_TANTRUM: return "GRUMPY!";
+    case NEED_BORED: return "BORED!";
+    case NEED_SLEEPY: return "SLEEPY!";
+    default: return "";
   }
-  int bx = vw - 44, by = 2;
-  gradPanel(d, bx, by, 42, 42, R_BUTTER, 4, 0);
-  if (icon) blitSprite(d, *icon, bx + 5, by + 5);
-  else drawText(d, FONT_CHUNK, "!", bx + 21, by + 11, 3, R_RED.bot, C_WHITE, TXT_CENTER | TXT_OUTLINE);
+}
+
+void pvNeedLabelDraw(const uint8_t *bg, const uint16_t *pal, int xRight, int y, bool force) {
+  Need n = (pet.sleeping || mission.active) ? NEED_NONE : petNeed();
+  if (!force && (int)n == shownNeed) return;
+  const int H = 24, MAXW = 150;
+  if (!force && shownNeed > 0) drawBgRegion(bg, pal, xRight - MAXW, y, MAXW + 2, H + 4);  // erase the old label
+  shownNeed = n;
+  if (n == NEED_NONE) return;
+  const char *t = needText(n);
+  int w = textWidth(FONT_SILK, t, 2) + 18;
+  Ramp r = (n == NEED_SICK || n == NEED_HUNGER) ? R_RED : R_BUTTER;
+  gradPanel(&tft, xRight - w, y, w, H, r, 4, 0);
+  drawText(&tft, FONT_SILK, t, xRight - w / 2, y + 7, 2, C_WHITE, C_OUT, TXT_CENTER | TXT_OUTLINE);
 }
 
 // ---- stat bars ----

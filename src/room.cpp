@@ -31,7 +31,7 @@ static const RoomDef ROOMS[5] = {
 
 static const int VX = 0, VY = 136, VW = 240, VH = 134;  // roaming window: screen y 136..270
 static const int PET = 48;                              // drawn size of the small pet
-static const int MIN_X = 30, MAX_X = 210, MIN_Y = 74, MAX_Y = 124;  // where the feet may go (view coords)
+static const int MIN_X = 30, MAX_X = 210, MIN_Y = 86, MAX_Y = 124;  // where the feet may go (view coords)
 static const int ICON_Y = SCREEN_H - ROOMUI_SIZE - 4;
 
 static const RoomDef *room = &ROOMS[0];
@@ -46,6 +46,7 @@ static void drawStatic() {
   drawBg(room->bg, room->pal);
   blitSprite(&tft, ROOMUI_FRAMES[ROOMUI_BACK], 4, 2);
   pvHudDraw(true, 52, true);
+  pvNeedLabelDraw(room->bg, room->pal, SCREEN_W - 4, 42, true);
   for (int i = 0; i < room->nIcons; i++) blitSprite(&tft, ROOMUI_FRAMES[room->icons[i].sprite], iconX(i), ICON_Y);
 }
 
@@ -123,15 +124,15 @@ static void drawView() {
 
   uint16_t ground = view.readPixel(constrain(cx, 0, VW - 1), constrain(feet + 2, 0, VH - 1));
   view.fillEllipse(cx, feet, 18 - bob / 6, 4, mix565(ground, C_OUT, 70));
-  blitSpriteHalf(&view, *sprite, cx - PET / 2, feet - PET + 2 - walkBob - bob / 2, !faceRight);
+  int petTop = feet - PET + 2 - walkBob - bob / 2;
+  blitSpriteHalf(&view, *sprite, cx - PET / 2, petTop, !faceRight);
 
   if (pet.sleeping && pet.stage != S_EGG && pet.stage != S_GHOST) {
     int off = (int)(fmodf(now / 1000.0f, 3.0f) * 6);
     drawText(&view, FONT_CHUNK, "Z", cx + 14, feet - PET - off, 2, R_PINK.bot, C_WHITE, TXT_OUTLINE);
   }
   pvDrawEffects(&view, cx, feet, PET);
-  pvDrawNeedBubble(&view, VW);
-  pvDrawBubble(&view, VW, 0);
+  pvDrawBubble(&view, VW, cx, petTop + 4);  // follows the pet
   view.pushSprite(VX, VY);
 }
 
@@ -194,6 +195,7 @@ static void roomUpdate() {
   if (imActive()) return;  // the list is static; pause the room
 
   pvHudDraw(true, 52, false);
+  pvNeedLabelDraw(room->bg, room->pal, SCREEN_W - 4, 42, false);
   pvUpdateCalls();
 
   if (now - lastFrame >= 50) {  // ~20 fps

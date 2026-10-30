@@ -26,8 +26,13 @@ void pvFeedback(ActionResult r, const char *okMsg, Anim okAnim, uint32_t ms);
 
 // Drawing helpers (dst is the screen or a view sprite). cx = pet centre x, floorY = pet feet, petH = drawn height
 void pvDrawEffects(TFT_eSPI *dst, int cx, int floorY, int petH);
-void pvDrawBubble(TFT_eSPI *dst, int vw, int y = 4);
-void pvDrawNeedBubble(TFT_eSPI *dst, int vw);
+// Speech bubble above the pet: anchorX = pet centre x, anchorTopY = top of the pet's head (in dst coordinates).
+// The bubble slides to stay inside [0, vw) and its tail points at the pet.
+void pvDrawBubble(TFT_eSPI *dst, int vw, int anchorX, int anchorTopY);
+
+// What the pet needs, as a text label on the screen (right-aligned at xRight, top at y). The background is
+// restored when it goes away. force = the screen was just redrawn: draw without restoring.
+void pvNeedLabelDraw(const uint8_t *bg, const uint16_t *pal, int xRight, int y, bool force);
 
 // Stat bars (food, joy, energy). compact = small version used on room screens (x0 = left edge).
 void pvHudDraw(bool compact, int x0, bool force);

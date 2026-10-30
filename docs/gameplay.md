@@ -40,7 +40,8 @@ Egg -> Baby -> Child -> Teen -> Adult (8 possible forms)
 
 ## Needs and care mistakes
 
-The pet calls for attention with a blinking bubble above it, a repeating beep (every 45 s) and the red LED. The need
+The pet calls for attention with a text label under the stat bars (for example `HUNGRY!`), a repeating beep (every 45 s)
+and the red LED. The need
 shown is the highest priority one:
 
 1. **Sick** 2. **Hungry** (food < 30) 3. **Poop** (2 or more piles) 4. **Tantrum** 5. **Bored** (joy < 30)

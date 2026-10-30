@@ -43,6 +43,7 @@ void villageInit() { pvInit(); }
 static void redrawAll() {
   drawBg(BG_VILLAGE, tintPal);
   pvHudDraw(false, 2, true);
+  pvNeedLabelDraw(BG_VILLAGE, tintPal, SCREEN_W - 4, HUD_Y + HUD_H + 4, true);
   drawNav(TAB_HOME);
 }
 
@@ -100,8 +101,7 @@ static void drawPetView() {
   }
 
   pvDrawEffects(&view, VW / 2, FLOOR_Y, 96);
-  pvDrawNeedBubble(&view, VW);
-  pvDrawBubble(&view, VW);
+  pvDrawBubble(&view, VW, px + dw / 2, py + 8);  // above the pet's head
 
   // caption: form name, care mistakes, ryo
   char cap[40];
@@ -137,6 +137,7 @@ static void villageUpdate() {
   }
 
   pvHudDraw(false, 2, false);
+  pvNeedLabelDraw(BG_VILLAGE, tintPal, SCREEN_W - 4, HUD_Y + HUD_H + 4, false);
   pvUpdateCalls();
 
   if (now - lastFrame >= 50) {  // ~20 fps
