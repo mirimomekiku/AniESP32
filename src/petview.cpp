@@ -1,0 +1,244 @@
+#include "petview.h"
+
+#include "hw.h"
+#include "inventory.h"
+
+static Anim anim = ANIM_NONE;
+static uint32_t animUntil = 0, animTotal = 1;
+static const Sprite *foodSprite = nullptr;
+static const char *message = "";
+static uint32_t messageUntil = 0;
+static uint32_t lastCallBeep = 0;
+
+void pvSay(const char *msg, uint32_t ms) {
+  message = msg;
+  messageUntil = millis() + ms;
+}
+
+const char *pvMessage() { return (millis() < messageUntil && message[0]) ? message : nullptr; }
+
+void pvStartAnim(Anim a, uint32_t ms) {
+  anim = a;
+  animUntil = millis() + ms;
+  animTotal = max<uint32_t>(ms, 1);
+}
+
+Anim pvAnim() {
+  if (anim != ANIM_NONE && millis() > animUntil) anim = ANIM_NONE;
+  return anim;
+}
+
+void pvSetFood(const Sprite *s) { foodSprite = s; }
+
+// ---- pet events: sounds + speech ----
+static void onPetEvent(PetEvent e) {
+  switch (e) {
+    case EV_HATCH: {
+      static const int n[] = {660, 880, 1320};
+      static const int d[] = {90, 90, 180};
+      hwMelody(n, d, 3);
+      pvSay("Hatched!", 3000);
+      break;
+    }
+    case EV_EVOLVE:
+      if (pet.stage == S_EGG) {
+        pvSay("A new egg!", 3000);
+      } else {
+        static const int n[] = {523, 659, 784, 1047};
+        static const int d[] = {100, 100, 100, 220};
+        hwMelody(n, d, 4);
+        pvSay("Evolved!", 3000);
+      }
+      break;
+    case EV_POOP: pvSay("Poop!"); break;
+    case EV_SICK: pvSay("Feels ill"); hwBeep(300, 250); break;
+    case EV_DIE: {
+      static const int n[] = {392, 330, 262};
+      static const int d[] = {250, 250, 500};
+      hwMelody(n, d, 3);
+      pvSay("Goodbye...", 4000);
+      break;
+    }
+    case EV_CARE_MISTAKE: hwBeep(220, 300); break;
+    case EV_WAKE: pvSay("Morning!"); break;
+    case EV_SLEEP: pvSay("Zzz..."); break;
+    case EV_TANTRUM: pvSay("Hmph!", 3000); pvStartAnim(ANIM_GRUMPY, 3000); break;
+    case EV_MISSION_DONE: {
+      static const int n[] = {784, 988, 1175};
+      static const int d[] = {90, 90, 200};
+      hwMelody(n, d, 3);
+      pvSay("Back home!", 3000);
+      break;
+    }
+    case EV_CALL: break;  // handled by the repeating beep in pvUpdateCalls()
+  }
+}
+
+void pvInit() { petEventHook = onPetEvent; }
+
+// ---- mood and sprite choice ----
+bool pvMoodSad() {
+  Need n = petNeed();
+  return pet.sick || pet.food < 1 || n == NEED_HUNGER || n == NEED_BORED || n == NEED_SICK || pet.food < 30 || pet.joy < 30;
+}
+
+bool pvMoodHappy() { return pet.food > 60 && pet.joy > 60 && pet.energy > 40 && !pet.sick; }
+
+const Sprite *pvPickSprite(int &bob, int &dx, float &sy) {
+  uint32_t now = millis();
+  float t = now / 1000.0f;
+  Anim a = pvAnim();
+  bob = 0;
+  dx = 0;
+  sy = 1.0f + 0.03f * sinf(t * 3.9f);  // breathing
+
+  if (pet.stage == S_EGG) {
+    sy = 1.0f;
+    if (pet.warmth > 0) dx = ((now / 110) % 2 ? 1 : -1) * (1 + pet.warmth / 34) * 2;
+    return &STAGE_FRAMES[pet.warmth >= 70 ? STAGE_CRACK : STAGE_EGG];
+  }
+  if (pet.stage == S_GHOST) {
+    sy = 1.0f;
+    bob = 6 + (int)(sinf(t * 2.0f) * 6);
+    return &STAGE_FRAMES[STAGE_GHOST];
+  }
+
+  bool happyNow = a == ANIM_PLAY || a == ANIM_EAT || (pvMoodHappy() && (now / 900) % 3 == 0);
+  if (pet.sleeping) {
+    sy = 0.98f + 0.02f * sinf(t * 1.3f);
+  } else if (a == ANIM_PLAY) {
+    bob = (int)fabsf(sinf(t * 8.0f) * 24);
+    sy = 1.0f + 0.08f * cosf(t * 8.0f);
+  } else if (a == ANIM_REFUSE || a == ANIM_GRUMPY) {
+    dx = ((now / 90) % 2) ? 4 : -4;
+  } else if (happyNow) {
+    bob = (int)fabsf(sinf(t * 6.0f) * 8);
+  } else if (pet.food < 1) {
+    sy = 0.94f;
+  } else if (pvMoodSad()) {
+    sy = 0.96f + 0.015f * sinf(t * 2.0f);
+  }
+
+  switch (pet.stage) {
+    case S_BABY: return &STAGE_FRAMES[STAGE_BABY];
+    case S_CHILD: return &STAGE_FRAMES[STAGE_CHILD];
+    case S_TEEN:
+      if (pet.sleeping) return &STAGE_FRAMES[STAGE_SLEEP];
+      if (pet.sick || pet.food < 1) return &STAGE_FRAMES[STAGE_SICK];
+      return &STAGE_FRAMES[STAGE_TEEN];
+    default: break;
+  }
+  if (pet.sleeping) return &SLEEPING_FRAMES[pet.form];
+  if (pet.sick || pet.food < 1 || (pvMoodSad() && !happyNow)) return &SAD_FRAMES[pet.form];
+  if (happyNow) return &HAPPY_FRAMES[pet.form];
+  return &ADULT_FRAMES[pet.form];
+}
+
+// ---- action feedback ----
+void pvFeedback(ActionResult r, const char *okMsg, Anim okAnim, uint32_t ms) {
+  switch (r) {
+    case RES_OK:
+      pvSay(okMsg);
+      if (okAnim != ANIM_NONE) pvStartAnim(okAnim, ms);
+      break;
+    case RES_FULL: pvSay("Too full!"); pvStartAnim(ANIM_REFUSE, 900); break;
+    case RES_ASLEEP: pvSay("Zzz.. shh!"); break;
+    case RES_NOT_NEEDED: pvSay("Not needed"); break;
+    case RES_TOO_TIRED: pvSay("Too tired"); break;
+    case RES_FAINTED: pvSay("Feed me!"); break;
+    case RES_EGG: pvSay("Still an egg"); break;
+    case RES_NOT_ALIVE: pvSay("Tap the spirit"); break;
+    case RES_NONE_LEFT: pvSay("Buy in SHOP"); break;
+    case RES_AWAY: pvSay("On a mission"); break;
+    case RES_TOO_YOUNG: pvSay("Too young"); break;
+    case RES_UNWELL: pvSay("Not well"); break;
+  }
+}
+
+// ---- drawing ----
+void pvDrawEffects(TFT_eSPI *d, int cx, int floorY, int petH) {
+  uint32_t now = millis();
+  Anim a = pvAnim();
+  float t = now / 1000.0f;
+  if (a == ANIM_EAT && foodSprite) {
+    float p = 1.0f - (float)(animUntil - now) / animTotal;
+    int s = max(24, petH / 2);
+    if (p < 0.6f) blitSpriteScaled(d, *foodSprite, cx - s / 2, floorY - petH - s + (int)(p / 0.6f * petH * 0.7f), s, s);
+  } else if (a == ANIM_CLEAN) {
+    int s = petH + 16;
+    blitSpriteScaled(d, ITEM_FRAMES[ITEM_SMOKE], cx - s / 2, floorY - petH / 2 - s / 2, s, s);
+  } else if (a == ANIM_PLAY || (pvMoodHappy() && !pet.sleeping && pet.stage != S_EGG && pet.stage != S_GHOST)) {
+    for (int i = 0; i < 3; i++) {
+      float ph = fmodf(t * 1.1f + i * 0.33f, 1.0f);
+      const Sprite &deco = DECOR_FRAMES[a == ANIM_PLAY ? DECOR_HEART : (i % 2 ? DECOR_SPARKLE : DECOR_PLUS)];
+      int span = max(60, petH);
+      blitSprite(d, deco, cx - span / 2 - 12 + i * (span / 2), floorY - petH / 3 - (int)(ph * petH * 0.8f));
+    }
+  }
+}
+
+void pvDrawBubble(TFT_eSPI *d, int vw, int y) {
+  const char *m = pvMessage();
+  if (!m) return;
+  int w = textWidth(FONT_SILK, m, 2) + 20;
+  int bx = (vw - w) / 2;
+  gradPanel(d, bx, y, w, 30, R_CREAM, 3, 0);
+  d->fillRect(vw / 2 - 5, y + 30, 10, 4, C_OUT);
+  d->fillRect(vw / 2 - 3, y + 28, 6, 5, C_CREAM);
+  drawText(d, FONT_SILK, m, vw / 2, y + 10, 2, C_TEXT, C_WHITE, TXT_CENTER);
+}
+
+void pvDrawNeedBubble(TFT_eSPI *d, int vw) {
+  Need n = petNeed();
+  if (n == NEED_NONE || pet.sleeping || (millis() / 500) % 5 == 4) return;
+  const Sprite *icon = nullptr;
+  switch (n) {
+    case NEED_SICK: icon = &ITEM_FRAMES[ITEM_SKULL]; break;
+    case NEED_HUNGER: icon = &ITEM_FRAMES[ITEM_RAMEN]; break;
+    case NEED_POOP: icon = &ITEM_FRAMES[ITEM_POOP]; break;
+    case NEED_BORED: icon = &UI_FRAMES[UI_BALL]; break;
+    case NEED_SLEEPY: icon = &UI_FRAMES[UI_MOON]; break;
+    default: break;
+  }
+  int bx = vw - 44, by = 2;
+  gradPanel(d, bx, by, 42, 42, R_BUTTER, 4, 0);
+  if (icon) blitSprite(d, *icon, bx + 5, by + 5);
+  else drawText(d, FONT_CHUNK, "!", bx + 21, by + 11, 3, R_RED.bot, C_WHITE, TXT_CENTER | TXT_OUTLINE);
+}
+
+// ---- stat bars ----
+static int shownSeg[2][3] = {{-1, -1, -1}, {-1, -1, -1}};
+
+void pvHudDraw(bool compact, int x0, bool force) {
+  float vals[3] = {pet.food, pet.joy, pet.energy};
+  const Sprite *icons[3] = {&UI_FRAMES[UI_APPLE], &UI_FRAMES[UI_HEART], &UI_FRAMES[UI_BOLT]};
+  const Ramp ramps[3] = {R_PEACH, R_PINK, R_BUTTER};
+  for (int i = 0; i < 3; i++) {
+    int segs = (int)ceilf(vals[i] / 20.0f);  // 0..5
+    int &shown = shownSeg[compact][i];
+    if (!force && segs == shown) continue;
+    shown = segs;
+    Ramp fill = segs <= 1 ? R_RED : ramps[i];
+    if (!compact) {
+      int x = x0 + i * 79;
+      gradPanel(&tft, x, HUD_Y, 77, HUD_H, R_CREAM, 4, 0);
+      // icon and bar both centred on the panel's vertical middle
+      blitSprite(&tft, *icons[i], x + 3, HUD_Y + (HUD_H - 32) / 2);
+      drawSegBar(&tft, x + 36, HUD_Y + (HUD_H - 16) / 2, segs, fill);
+    } else {
+      int x = x0 + i * 62;
+      gradPanel(&tft, x, 8, 60, 28, R_CREAM, 4, 0);
+      blitSpriteScaled(&tft, *icons[i], x + 3, 8 + (28 - 22) / 2, 22, 22);
+      drawSegBar(&tft, x + 24, 8 + (28 - 16) / 2, segs, fill, 7);
+    }
+  }
+}
+
+void pvUpdateCalls() {
+  bool calling = petNeed() != NEED_NONE && !pet.sleeping;
+  hwAttention(calling);
+  if (calling && millis() - lastCallBeep > 45000) {
+    lastCallBeep = millis();
+    hwBeep(1175, 120);
+  }
+}
