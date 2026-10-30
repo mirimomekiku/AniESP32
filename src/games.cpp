@@ -3,6 +3,7 @@
 #include "hw.h"
 #include "inventory.h"
 #include "pet.h"
+#include "petview.h"
 #include "screen.h"
 
 static const int GV_Y = 70, GV_W = 240, GV_H = 150;  // animated view: screen y 70..220
@@ -10,14 +11,7 @@ static ButtonRow buttons;
 static uint32_t lastFrame = 0;
 
 // ---- shared helpers ----
-static const Sprite *petFrame(bool happy) {
-  switch (pet.stage) {
-    case S_BABY: return &STAGE_FRAMES[STAGE_BABY];
-    case S_CHILD: return &STAGE_FRAMES[STAGE_CHILD];
-    case S_TEEN: return &STAGE_FRAMES[STAGE_TEEN];
-    default: return happy ? &HAPPY_FRAMES[pet.form] : &ADULT_FRAMES[pet.form];
-  }
-}
+static const Sprite *petFrame(bool happy) { return pvPoseSprite(happy ? POSE_HAPPY : POSE_IDLE_A); }
 
 static void drawHeader(const char *left, const char *right) {
   gradPanel(&tft, 4, 8, 232, 36, R_BUTTER, 5, 0);

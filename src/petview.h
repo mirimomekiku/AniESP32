@@ -6,7 +6,8 @@
 #include "gfx.h"
 #include "pet.h"
 
-enum Anim { ANIM_NONE, ANIM_EAT, ANIM_PLAY, ANIM_REFUSE, ANIM_CLEAN, ANIM_GRUMPY };
+// ANIM_CLEAN = being washed (soap bubbles); ANIM_POOF = a puff of smoke after using a potion, scroll or medicine
+enum Anim { ANIM_NONE, ANIM_EAT, ANIM_PLAY, ANIM_REFUSE, ANIM_CLEAN, ANIM_GRUMPY, ANIM_POOF };
 
 void pvInit();  // wires the pet event hook (sounds + speech)
 
@@ -18,8 +19,12 @@ void pvSetFood(const Sprite *s);  // what the pet is eating
 
 bool pvMoodSad();
 bool pvMoodHappy();
-// Chooses the frame and idle motion: bob (px up), dx (px sideways), sy (vertical stretch factor)
-const Sprite *pvPickSprite(int &bob, int &dx, float &sy);
+// Chooses the animation frame for the current state (sleeping, eating, being cleaned, walking, sitting, happy, sad,
+// idle with blinks) plus the idle motion: bob (px up), dx (px sideways), sy (vertical stretch factor).
+// moving / sitting are supplied by the screen (a roaming pet walks, a resting one sits).
+const Sprite *pvPickSprite(bool moving, bool sitting, int &bob, int &dx, float &sy);
+// A given pose of the current character (growing stages and adults), for screens that draw it themselves
+const Sprite *pvPoseSprite(PoseId pose);
 
 // Reaction text and animation for the result of an action
 void pvFeedback(ActionResult r, const char *okMsg, Anim okAnim, uint32_t ms);

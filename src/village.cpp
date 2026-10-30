@@ -72,7 +72,8 @@ static void drawPetView() {
 
   int bob, dx;
   float sy;
-  const Sprite *sprite = pvPickSprite(bob, dx, sy);
+  bool sitting = (now / 7000) % 3 == 2;  // now and then it sits down for a while
+  const Sprite *sprite = pvPickSprite(false, sitting, bob, dx, sy);
   // squash and stretch around the feet: height * sy, width / sy keeps the volume
   int dh = (int)(sprite->h * sy), dw = (int)(sprite->w / sy);
   int px = (VW - dw) / 2 + dx;

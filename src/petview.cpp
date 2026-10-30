@@ -84,7 +84,18 @@ bool pvMoodSad() {
 
 bool pvMoodHappy() { return pet.food > 60 && pet.joy > 60 && pet.energy > 40 && !pet.sick; }
 
-const Sprite *pvPickSprite(int &bob, int &dx, float &sy) {
+static int characterIndex() {
+  switch (pet.stage) {
+    case S_BABY: return CH_BABY;
+    case S_CHILD: return CH_CHILD;
+    case S_TEEN: return CH_TEEN;
+    default: return CH_FIRST_ADULT + min<int>(pet.form, ADULT_COUNT - 1);
+  }
+}
+
+const Sprite *pvPoseSprite(PoseId pose) { return &PET_SPRITES[characterIndex()][pose]; }
+
+const Sprite *pvPickSprite(bool moving, bool sitting, int &bob, int &dx, float &sy) {
   uint32_t now = millis();
   float t = now / 1000.0f;
   Anim a = pvAnim();
@@ -103,35 +114,40 @@ const Sprite *pvPickSprite(int &bob, int &dx, float &sy) {
     return &STAGE_FRAMES[STAGE_GHOST];
   }
 
-  bool happyNow = a == ANIM_PLAY || a == ANIM_EAT || (pvMoodHappy() && (now / 900) % 3 == 0);
+  bool happyNow = a == ANIM_PLAY || (pvMoodHappy() && (now / 900) % 3 == 0);
+  PoseId pose = POSE_IDLE_A;
+
   if (pet.sleeping) {
-    sy = 0.98f + 0.02f * sinf(t * 1.3f);
+    pose = POSE_SLEEP;
+    sy = 0.98f + 0.02f * sinf(t * 1.3f);  // slow breathing
+  } else if (a == ANIM_EAT) {
+    pose = ((now / 170) % 2) ? POSE_EAT_A : POSE_EAT_B;  // bite, chew, bite...
+    sy = 1.0f + 0.03f * sinf(t * 14.0f);
+  } else if (a == ANIM_CLEAN) {
+    pose = ((now / 230) % 2) ? POSE_CLEAN_A : POSE_CLEAN_B;  // lathered, then shaking it off
+    dx = (pose == POSE_CLEAN_B) ? (((now / 70) % 2) ? 2 : -2) : 0;
   } else if (a == ANIM_PLAY) {
+    pose = POSE_HAPPY;
     bob = (int)fabsf(sinf(t * 8.0f) * 24);
     sy = 1.0f + 0.08f * cosf(t * 8.0f);
   } else if (a == ANIM_REFUSE || a == ANIM_GRUMPY) {
     dx = ((now / 90) % 2) ? 4 : -4;
-  } else if (happyNow) {
-    bob = (int)fabsf(sinf(t * 6.0f) * 8);
-  } else if (pet.food < 1) {
-    sy = 0.94f;
-  } else if (pvMoodSad()) {
+  } else if (moving) {
+    pose = ((now / 170) % 2) ? POSE_WALK_A : POSE_WALK_B;
+    sy = 1.0f;
+    bob = (int)(fabsf(sinf(now / 85.0f)) * 3);
+  } else if (pet.sick || pet.food < 1 || (pvMoodSad() && !happyNow)) {
+    pose = POSE_SAD;
     sy = 0.96f + 0.015f * sinf(t * 2.0f);
+  } else if (happyNow) {
+    pose = POSE_HAPPY;
+    bob = (int)fabsf(sinf(t * 6.0f) * 8);
+  } else if (sitting) {
+    pose = POSE_SIT;
+  } else {
+    pose = (now % 3400 < 170) ? POSE_IDLE_B : POSE_IDLE_A;  // blink now and then
   }
-
-  switch (pet.stage) {
-    case S_BABY: return &STAGE_FRAMES[STAGE_BABY];
-    case S_CHILD: return &STAGE_FRAMES[STAGE_CHILD];
-    case S_TEEN:
-      if (pet.sleeping) return &STAGE_FRAMES[STAGE_SLEEP];
-      if (pet.sick || pet.food < 1) return &STAGE_FRAMES[STAGE_SICK];
-      return &STAGE_FRAMES[STAGE_TEEN];
-    default: break;
-  }
-  if (pet.sleeping) return &SLEEPING_FRAMES[pet.form];
-  if (pet.sick || pet.food < 1 || (pvMoodSad() && !happyNow)) return &SAD_FRAMES[pet.form];
-  if (happyNow) return &HAPPY_FRAMES[pet.form];
-  return &ADULT_FRAMES[pet.form];
+  return pvPoseSprite(pose);
 }
 
 // ---- action feedback ----
@@ -164,9 +180,21 @@ void pvDrawEffects(TFT_eSPI *d, int cx, int floorY, int petH) {
     float p = 1.0f - (float)(animUntil - now) / animTotal;
     int s = max(24, petH / 2);
     if (p < 0.6f) blitSpriteScaled(d, *foodSprite, cx - s / 2, floorY - petH - s + (int)(p / 0.6f * petH * 0.7f), s, s);
-  } else if (a == ANIM_CLEAN) {
+  } else if (a == ANIM_POOF) {
     int s = petH + 16;
     blitSpriteScaled(d, ITEM_FRAMES[ITEM_SMOKE], cx - s / 2, floorY - petH / 2 - s / 2, s, s);
+  } else if (a == ANIM_CLEAN) {
+    // soap bubbles drifting up around the pet
+    uint16_t fill = mix565(C_WHITE, R_SKY.top, 90);
+    for (int i = 0; i < 9; i++) {
+      float ph = fmodf(t * 0.7f + i * 0.113f, 1.0f);
+      int r = 3 + (i % 3) * 2 + (int)(petH / 40);
+      int bx = cx + (int)(sinf(t * 2.2f + i * 1.7f) * petH * 0.45f) + (i - 4) * (petH / 10);
+      int by = floorY - 6 - (int)(ph * (petH + 24));
+      d->fillCircle(bx, by, r, fill);
+      d->drawCircle(bx, by, r, R_SKY.bot);
+      d->fillRect(bx - r / 2, by - r / 2, max(1, r / 3), max(1, r / 3), C_WHITE);  // little shine
+    }
   } else if (a == ANIM_PLAY || (pvMoodHappy() && !pet.sleeping && pet.stage != S_EGG && pet.stage != S_GHOST)) {
     for (int i = 0; i < 3; i++) {
       float ph = fmodf(t * 1.1f + i * 0.33f, 1.0f);

@@ -117,8 +117,8 @@ static void drawView() {
 
   int bob, dx;
   float sy;
-  const Sprite *sprite = pvPickSprite(bob, dx, sy);
-  int walkBob = moving ? (int)(fabsf(sinf(now / 90.0f)) * 3) : 0;
+  const Sprite *sprite = pvPickSprite(moving && canRoam(), !moving && canRoam(), bob, dx, sy);
+  int walkBob = 0;  // the walk animation bobs by itself
   int cx = (int)px + dx / 2;
   int feet = (int)py;
 
@@ -150,10 +150,10 @@ static void act(int a) {
     case AC_PLAYMENU: if (!blocked()) imOpen(IM_PLAY, drawStatic); break;
     case AC_MISSIONS: if (!blocked()) imOpen(IM_MISSION, drawStatic); break;
     case AC_BAGMENU: if (!blocked()) imOpen(IM_BAG, drawStatic); break;
-    case AC_CLEAN: pvFeedback(petClean(), "Fresh!", ANIM_CLEAN, 700); break;
+    case AC_CLEAN: pvFeedback(petClean(), "Squeaky clean!", ANIM_CLEAN, 2200); break;
     case AC_HEAL:
       pvSetFood(&ITEM_FRAMES[ITEM_MEDICINE]);
-      pvFeedback(useItem(SI_MEDICINE), "Better!", ANIM_CLEAN, 700);
+      pvFeedback(useItem(SI_MEDICINE), "Better!", ANIM_POOF, 700);
       playerSave();
       break;
     case AC_SLEEP: {
