@@ -11,7 +11,7 @@ Hatch it, feed it, train it, watch it evolve. All on a 2.8" touchscreen, in soft
 ![Display](https://img.shields.io/badge/display-240x320%20ST7789-ff69b4)
 ![Board](https://img.shields.io/badge/board-ESP32--2432S028%20(CYD)-yellow)
 
-<img src="docs/images/adult.png" alt="The eight adult forms" width="760">
+<img src="docs/images/adult.png" alt="The twelve adult forms" width="760">
 
 </div>
 
@@ -23,10 +23,11 @@ AniESP32 is a Tamagotchi-style virtual pet with a ninja village theme, written f
 **ESP32-2432S028 "Cheap Yellow Display" (CYD)**. It runs standalone: no phone, no server, no app.
 Everything (sprites, backgrounds, fonts, game logic) lives on the board.
 
-- A pet that **hatches, grows and evolves** into one of **8 adult forms**, depending on how you raise it
+- A pet that **hatches, grows and evolves** into one of **12 adult forms**, depending on how you raise it
+- **Fully animated pets**: idle, walking, sitting, sleeping, eating, being washed, happy and sad, for every stage and form
 - Real **care mechanics**: hunger, mood, energy, poop, sickness, tantrums, bedtime
 - A **main menu of round badge buttons** and cosy **room screens** where the pet wanders around
-- **Shop, bag, DEX album, mini-games and timed missions**
+- A **shop with 15 items** (12 foods, potion, medicine, scroll) across paged cards, a bag, a **DEX album**, mini-games and timed missions
 - A **pixel-art digital clock** with optional NTP sync and an alarm
 - **Day/night awareness** from the clock and the board's light sensor: it sleeps when the lights go out
 - Polished UI: banded-gradient panels, outlined pixel fonts, fades through black between screens
@@ -39,8 +40,9 @@ Everything (sprites, backgrounds, fonts, game logic) lives on the board.
 
 *Village, kitchen, playroom, bathroom, storage room, bedroom and the night clock.*
 
-<img src="docs/images/stage.png" alt="Life stages" width="560"><br>
-<img src="docs/images/menu.png" alt="Menu badges" width="560">
+<img src="docs/images/animations.png" alt="One pet, twelve animation frames" width="760"><br>
+<img src="docs/images/foods.png" alt="The twelve foods" width="420">
+<img src="docs/images/menu.png" alt="Menu badges" width="420">
 
 </div>
 
@@ -72,12 +74,12 @@ clock over NTP. Full instructions: [Build and flash](docs/build-and-flash.md).
 
 | Room | What you do there |
 |------|-------------------|
-| **Feed** | Free rice, or onigiri, ramen and dango from your bag |
+| **Feed** | Free rice, or any food you own (paged list) |
 | **Play** | Quick play, **shuriken** and **shell** mini-games, **missions** |
 | **Clean** | Sweep up poop, use medicine when it is sick |
 | **Bag** | Medicine, chakra potions and training scrolls |
 | **Sleep** | Put it to bed or wake it up |
-| **Shop / DEX** | Spend ryo, see which forms you have raised |
+| **Shop / DEX** | Spend ryo on foods and items (BACK/NEXT pages), see which of the 12 forms you have raised |
 | **Clock** (bottom bar) | Set the time and the alarm |
 
 Keep the three bars (food, joy, energy) up, clean up the poop, answer its calls, and tap it to scold a tantrum.

@@ -27,17 +27,17 @@ calls the active screen. The code is split so that **game rules never draw** and
 | `screen.h` | The `Screen` interface, `ScreenId` list, `gotoScreen()` |
 | `pet.h/.cpp` | The pet simulation: stages, stats, needs, poop, sickness, tantrums, evolution table, missions, actions, save/load |
 | `inventory.h/.cpp` | Player-level state that outlives a pet: ryo, bag, shop item table, using items |
-| `album.h/.cpp` | DEX unlock bitmask and counters, plus the DEX screen |
+| `album.h/.cpp` | DEX unlock bitmask and counters, plus the paged DEX screen |
 | `clock.h/.cpp` | Time keeping, NTP, offline catch-up, alarm, and the clock screen |
-| `petview.h/.cpp` | Presentation of the pet shared by home and rooms: which sprite, animations, speech, effects, stat bars, attention calls |
+| `petview.h/.cpp` | Presentation of the pet shared by home and rooms: **pose selection** (idle, walk, sit, sleep, eat, clean, happy, sad), speech bubbles, effects (food drop, soap bubbles, smoke), stat bars, attention calls |
 | `village.cpp` | Home screen |
 | `mainmenu.cpp` | 3x3 badge menu |
 | `room.cpp` | Five room screens (feed, play, clean, bag, sleep): roaming pet and bottom-right icons |
-| `itemmenu.h/.cpp` | Pop-up lists: food, bag, play options, missions |
-| `shop.cpp` | Shop screen |
+| `itemmenu.h/.cpp` | Pop-up lists with paging: owned foods, bag, play options, missions |
+| `shop.cpp` | Shop screen: FOOD / ITEMS chips, 2x2 cards, BACK / NEXT |
 | `games.cpp` | Shuriken and shell mini-games |
 | `colortest.cpp` | Hidden colour test screen |
-| `gfx.h/.cpp` | Drawing toolkit |
+| `gfx.h/.cpp` | Drawing toolkit, including the reusable BACK / NEXT page bar (`pageNavDraw`, `pageNavHit`) |
 | `hw.h/.cpp` | Peripherals: LED, buzzer, backlight fade, light sensor |
 | `assets.h/.cpp` | **Generated**: sprites, palettes, backgrounds |
 | `font_data.h/.cpp` | **Generated**: bitmap fonts |
@@ -97,14 +97,15 @@ one), which keeps RAM use at about 16 %.
 
 ### Sprites
 
-Sprites are **palette-indexed**: one byte per pixel indexing a per-group RGB565 palette, with index 0 meaning
-transparent.
+Sprites are **palette-indexed and run-length encoded**: each row is a list of `(count, palette index)` byte pairs
+referencing a per-character or per-group RGB565 palette, index 0 meaning transparent.
 
 ```cpp
-struct Sprite { const uint8_t *px; const uint16_t *pal; uint8_t w, h; };
+struct Sprite { const uint8_t *rle; const uint16_t *pal; uint8_t w, h; };
 ```
 
-The blitters walk each row and draw runs of equal colour with one `fillRect`:
+The blitters walk the runs directly and draw each one with a single `fillRect`, so detailed art costs one call per
+colour run, not per pixel:
 
 | Function | Use |
 |----------|-----|
@@ -113,7 +114,7 @@ The blitters walk each row and draw runs of equal colour with one `fillRect`:
 | `blitSpriteHalf` | Smooth 2:1 reduction (DEX thumbnails, small pet), optional flip |
 | `blitSilhouette[Scaled]` | Single-colour shape (locked DEX entries) |
 
-Pets are 96x96, items and UI icons 32x32, menu badges 72x72, room icons 44x44, decorations 24x24. Backgrounds are
+Pets are 96x96 (15 characters x 12 poses in `PET_SPRITES[character][pose]`), items, foods and UI icons 32x32, menu badges 72x72, room icons 44x44, decorations 24x24. Backgrounds are
 240x320 palette-indexed (96 colours) and drawn row by row; the village palette is **tinted** per time of day before
 drawing (day, dusk, night, dawn).
 
@@ -153,8 +154,8 @@ Stored in the ESP32's NVS flash under the namespace **`tama`** with `Preferences
 |-----|------|---------|
 | `pet` | blob | The whole `Pet` struct. Version byte = `SAVE_VERSION` (currently 2); a size or version mismatch discards it and starts a new egg |
 | `mission` | blob | Whether a mission is running, which one, seconds left |
-| `player` | blob | Ryo and the bag |
-| `album`, `raised` | uchar, ushort | DEX unlock bitmask, adults raised |
+| `player` | blob | Ryo and the bag (15 item counters). Version 2; a version-1 blob (6 items) is migrated on load |
+| `albumw`, `raised` | ushort, ushort | DEX unlock bitmask (12 bits; older saves used an 8-bit `album` key, still read), adults raised |
 | `epoch` | ulong | Last saved time (the board has no RTC) |
 | `h24`, `alH`, `alM`, `alOn` | settings | 24 h display, alarm hour, minute, enabled |
 | `ldrLo`, `ldrHi` | int | Learned light-sensor range |
@@ -166,9 +167,9 @@ Saves happen every 60 seconds and after each action. Changing the `Pet` struct r
 
 | | |
 |---|---|
-| RAM | about 53 KB static of 320 KB; the largest runtime allocation is a 77 KB view sprite |
-| Flash | about 2.2 MB of the 3 MB app slot: roughly 1.1 MB code and libraries, 1.1 MB generated art |
-| Sprites | adult poses 8 x 4 frames x 9 KB, stages 8 x 9 KB, backgrounds 8 x 77 KB |
+| RAM | about 63 KB static of 320 KB; the largest runtime allocation is a 77 KB view sprite |
+| Flash | about 2.67 MB of the 3 MB app slot (85 %): roughly 1.1 MB code and libraries, 1.5 MB generated art |
+| Sprites | 180 pet frames (RLE, about 2-4 KB each), backgrounds 8 x 77 KB raw |
 
 ## Hardware access
 

@@ -14,15 +14,35 @@ Both outputs are committed so the firmware builds without Python. Run the script
 ## Source sheets
 
 Sprite sheets are drawn on a **flat magenta (#FF00FF) background** in an equal-cell grid. Backgrounds are plain
-3:4 portrait images.
+3:4 portrait images. Pets and foods live in `assets/v3/raw`, everything else in `assets/v2/raw`.
+
+### The 15 characters and their 12 poses
+
+The 15 characters, in grid order (5 columns x 3 rows, left to right, top to bottom): **baby, child, teen** (the fox
+growing line), then the **12 adult forms**: kitsune, sage toad, tanuki, shadow cat, raiju, moon slug, hawk, serpent,
+moon rabbit, axolotl, frost penguin, cloud sheep.
+
+Every pose is its own sheet with the **same 5 x 3 layout**:
+
+| Sheet | Pose |
+|-------|------|
+| `v3_base.png` | `IDLE_A`: the neutral front-facing pose (also the style reference for all others) |
+| `v3_idle2.png` | `IDLE_B`: blink frame |
+| `v3_walk1.png`, `v3_walk2.png` | `WALK_A`, `WALK_B`: walking right, opposite legs forward |
+| `v3_sleep.png` | `SLEEP` |
+| `v3_sit.png` | `SIT` |
+| `v3_eat1.png`, `v3_eat2.png` | `EAT_A` (mouth wide open), `EAT_B` (chewing) |
+| `v3_clean1.png`, `v3_clean2.png` | `CLEAN_A` (lathered), `CLEAN_B` (shaking off water) |
+| `v3_happy.png`, `v3_sad.png` | `HAPPY`, `SAD` |
+
+All 96x96, 180 frames in total.
+
+### Everything else
 
 | File | Grid | Content | Final size |
 |------|------|---------|------------|
-| `v2_stages.png` | 4 x 2 | egg, cracking egg, baby, child, teen, sick, sleeping, ghost | 96x96 |
-| `v2_adults.png` | 4 x 2 | the 8 adult forms (idle) | 96x96 |
-| `v2_adults_happy.png` | 4 x 2 | same 8, happy pose | 96x96 |
-| `v2_adults_sad.png` | 4 x 2 | same 8, sad/unwell pose | 96x96 |
-| `v2_adults_sleep.png` | 4 x 2 | same 8, sleeping pose | 96x96 |
+| `v3_foods.png` | 4 x 3 | onigiri, ramen, dango, mochi, tempura, sushi, taiyaki, udon, matcha, cake, bento, berry | 32x32 |
+| `v2_stages.png` | 4 x 2 | only the egg, cracking egg and ghost are used (cells 1, 2 and 8) | 96x96 |
 | `v2_items.png` | 4 x 4 | ramen, onigiri, dango, potion, medicine, kunai, shuriken, scroll, headband, poop, bandage, skull, light bulb, smoke, coin, lantern | 32x32 |
 | `v2_ui.png` | 4 x 4 | apple, ball, moon, clock, paw, heart, bowl, bolt, house, bag, book, bell, broom, cross, star, pad | 32x32 |
 | `v2_decor.png` | 4 x 2 | sparkle, plus sparkle, heart, flower, cloud, bow, note, star | 24x24 |
@@ -39,20 +59,29 @@ that is currently not shown in the menu; it is kept so the sheet layout stays st
 1. **Remove the background.** Pixels very close to magenta are cleared everywhere; looser matches (anti-aliased
    edges) are cleared only when connected to the sheet border. This keeps magenta-ish artwork, such as purple and
    pink badge fills, intact.
-2. **Slice by connected component.** Each sprite is found as a group of connected pixels and assigned to a cell by
-   its centre, so artwork may cross cell borders (tails, wings). Specks smaller than 80 px are dropped.
-3. **Scale.** One shared scale per sheet keeps relative sizes (all 8 adults use the same factor). The pose sheets are
-   scaled to match the idle sheet. Characters are **bottom-aligned**, icons are **centred** in their canvas.
+2. **Slice by connected component.** Each sprite is found as a group of connected pixels, so artwork may cross cell
+   borders (tails, wings). Three rules keep neighbours from stealing each other's pixels:
+   - a blob wider than 1.5 cells (two characters that touch) is **split** at the sparsest column between the two
+     cell centres;
+   - each cell gets exactly **one main body** (the largest piece centred in it);
+   - every other piece (detached tail tips, sparkles, soap bubbles) joins the nearest main body, measured in units of
+     that body's own size. Specks under 80 px are dropped.
+3. **Scale.** One shared scale per sheet keeps relative sizes (all characters use the same factor). Pose sheets are
+   scaled to match the base sheet. Characters are **bottom-aligned**, icons are **centred** in their canvas.
 4. **Outline.** A 1 px dark-plum ring is added around every silhouette (except decorations), for the emphasised
    outline look.
-5. **Quantise.** One shared palette per group (96 colours for characters, items, UI and room icons, 128 for menu
-   badges, 24 for decorations), **no dithering**, so gradients become clean bands.
-6. **Write C.** Palettes as `uint16_t` RGB565 (with rounding), pixels as `uint8_t` indices, index 0 = transparent.
-7. **Backgrounds** are resized to 240x320 and quantised to 96 colours.
+5. **Quantise.** One palette per group, **no dithering**, so gradients become clean bands. Each character gets its
+   **own 64-colour palette** shared by its 12 poses; icon groups use 96 colours, menu badges 128, decorations 24.
+6. **Write C.** Palettes as `uint16_t` RGB565 (with rounding). Pixels are stored **run-length encoded**, row by row
+   as `(count, index)` byte pairs, with index 0 = transparent. The blitters draw straight from the runs.
+7. **Backgrounds** are resized to 240x320 and quantised to 96 colours (stored raw).
+
+The converter also writes `assets/preview/pets_contact.png`, a contact sheet of all 15 characters x 12 poses. Open it
+after every run to check the slicing.
 
 ### Generated API
 
-For a group `UI` with names `APPLE`, `BALL`, ... the header contains:
+For an icon group such as `UI` (names `APPLE`, `BALL`, ...) the header contains:
 
 ```cpp
 #define UI_SIZE 32
@@ -60,7 +89,17 @@ enum UiId { UI_APPLE, UI_BALL, ..., UI_COUNT };
 extern const Sprite UI_FRAMES[UI_COUNT];
 ```
 
-Same pattern for `ITEM`, `DECOR`, `MENU`, `ROOMUI`, `STAGE`, `ADULT`, `HAPPY`, `SAD`, `SLEEPING`. Backgrounds:
+Same pattern for `ITEM`, `FOOD`, `DECOR`, `MENU`, `ROOMUI` and `STAGE` (egg, crack, ghost). The characters:
+
+```cpp
+enum CharId { CH_BABY, CH_CHILD, CH_TEEN, CH_FOX, CH_TOAD, ... CH_SHEEP, CH_COUNT };
+enum PoseId { POSE_IDLE_A, POSE_IDLE_B, POSE_WALK_A, POSE_WALK_B, POSE_SLEEP, POSE_SIT,
+              POSE_EAT_A, POSE_EAT_B, POSE_CLEAN_A, POSE_CLEAN_B, POSE_HAPPY, POSE_SAD, POSE_COUNT };
+enum AdultId { ADULT_FOX, ADULT_TOAD, ... ADULT_SHEEP, ADULT_COUNT };   // adult form = character - CH_FIRST_ADULT
+extern const Sprite PET_SPRITES[CH_COUNT][POSE_COUNT];
+```
+
+Backgrounds:
 
 ```cpp
 extern const uint8_t  BG_VILLAGE[240 * 320];
@@ -92,8 +131,9 @@ sheets, reuse this brief:
 
 Practical tips that worked:
 
-- Generate a whole **evolution line or character set in one sheet** so the designs stay consistent, then generate the
-  pose sheets **using the finished idle sheet as a reference image**.
+- Generate a whole **character set in one sheet** so the designs stay consistent, then generate each pose sheet
+  **using the finished base sheet as a reference image**. Ask the model to keep the same grid positions.
+- Keep neighbouring characters from touching; the converter can split small overlaps but clean gaps are best.
 - Ask for the flat magenta background and strict equal cells; keep the subject fully inside its cell.
 - Check licensing and terms of the image tool before redistributing generated art.
 

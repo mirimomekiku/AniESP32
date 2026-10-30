@@ -22,17 +22,20 @@ Almost everything is a constant near the top of one file:
 
 Use `pio run -e cyd-fast` to test timing changes quickly.
 
-## Add a new adult form
+## Add a new adult form (or replace one)
 
-1. Draw the new character in all four sheets (`v2_adults`, `_happy`, `_sad`, `_sleep`), keeping the cell order. The
-   grid is 4x2 so replacing an existing form is easy; adding a ninth needs the grid to grow (change the `slice_sheet`
-   calls and `adult_names` in `tools/make_assets.py`).
-2. Add the name to `adult_names` in `tools/make_assets.py`, run the script.
-3. Add the display name in `adultName()` and a row in `EVO[]` in `src/pet.cpp`.
-4. Add its hint to `albumHint()` in `src/album.cpp`.
+A form is one more character with all 12 poses.
 
-`ADULT_COUNT` and the DEX grid follow automatically (the DEX grid has room for 8 cards, enlarge `CARD_H` or paginate
-for more). The DEX bitmask is a `uint8_t`, so more than 8 forms needs it widened.
+1. Draw it into every sheet of the 5x3 grid (`v3_base.png` and the 11 pose sheets in `assets/v3/raw`), keeping the
+   cell order. Easiest is to regenerate the set with the new character included, using the base sheet as the
+   reference. The grid has 15 cells (3 growing stages + 12 forms); a 13th form needs a bigger grid, so change the
+   `slice_sheet(..., 5, 3, ...)` calls and `CHARS` in `tools/make_assets.py`.
+2. Add the name to `CHARS` in `tools/make_assets.py`, run the script. `ADULT_COUNT`, `CH_*` and `PET_SPRITES` update.
+3. Add its display name in `adultName()` and a row in the `EVO[]` table in `src/pet.cpp` (first match wins, so put
+   it before the more general rows).
+4. Add its hint to `albumHint()` in `src/album.cpp` and a ramp to the `ramps[]` table in the DEX drawing code.
+
+The DEX mask is 16 bits, so up to 16 forms work; the DEX shows 6 per page and pages automatically.
 
 ## Add a room
 
@@ -45,12 +48,15 @@ for more). The DEX bitmask is a `uint8_t`, so more than 8 forms needs it widened
 
 ## Add a shop item
 
-1. Add an id before `SI_COUNT` in `src/inventory.h`, a row in `SHOP_ITEMS[]`, and a `case` in `useItem()`.
-2. Pick an `ITEM_*` sprite for it (or add one to `v2_items.png`).
-3. The shop grid shows 6 cards; for more, reduce `CARD_H` or add paging in `shop.cpp`.
+1. Add the id before `SI_COUNT` in `src/inventory.h` and a row in `SHOP_ITEMS[]` with its price, category
+   (`IK_FOOD` or `IK_ITEM`), icon and what it gives (food, joy, energy, discipline). Foods use the `FOOD_*` sprites,
+   other items the `ITEM_*` sprites (add a new icon to `v3_foods.png` or `v2_items.png`).
+2. Add it to `SHOP_FOODS[]` or `SHOP_OTHERS[]` (the arrays also fix the sizes of the two shop categories, update
+   `listSize()` in `shop.cpp` if you change the counts). The shop pages itself: four cards per page.
+3. Special behaviour (like medicine curing sickness) goes in `useItem()` in `inventory.cpp`.
 
-The player save blob has `SI_COUNT` item counters, so bump `PLAYER_VERSION` in `inventory.cpp` when you change it
-(this resets ryo and the bag).
+New ids must be appended: saves store counts by id. Bump `PLAYER_VERSION` and extend the migration in `playerLoad()`
+when you change the item count (the current code migrates the original 6-item save).
 
 ## Add a screen
 

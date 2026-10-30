@@ -161,8 +161,8 @@ The firmware uses the `huge_app.csv` partition table:
 | spiffs | 0x310000 | 896 KB | unused |
 | coredump | 0x3F0000 | 64 KB | |
 
-Why: the generated art (about 1.1 MB of sprites and backgrounds) plus the Wi-Fi stack no longer fit in the default
-1.9 MB app slot. The firmware currently uses about 2.2 MB, roughly 70 % of the 3 MB slot. There is no OTA slot.
+Why: the generated art (about 1.5 MB of sprites and backgrounds) plus the Wi-Fi stack no longer fit in the default
+1.9 MB app slot. The firmware currently uses about 2.67 MB, roughly 85 % of the 3 MB slot. There is no OTA slot.
 
 The **NVS partition sits at the same address in every common partition table**, so switching tables does not erase
 your pet's save data. (Flashing with "erase flash" does.)

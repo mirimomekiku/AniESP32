@@ -7,7 +7,7 @@ unless you build with `DEBUG_FAST` (60x). Most balance constants live at the top
 ## Life cycle
 
 ```
-Egg -> Baby -> Child -> Teen -> Adult (8 possible forms)
+Egg -> Baby -> Child -> Teen -> Adult (12 possible forms)
                  \_______________/
                   neglect -> Ghost -> tap the spirit for a new egg
 ```
@@ -79,22 +79,45 @@ Ignoring it costs a care mistake and 5 discipline.
 
 ## Evolution
 
-Decided when the teen stage ends. The first matching row wins. `CM` is care mistakes, `D` discipline, `B` bond.
+Decided when the teen stage ends. The first matching row wins. `CM` is care mistakes, `D` discipline, `B` bond,
+`J` joy, `E` energy at that moment.
 
 | # | Condition | Form |
 |---|-----------|------|
 | 1 | CM <= 1, D >= 70, B >= 70 | **Kitsune** (nine-tail fox) |
 | 2 | CM <= 1, D >= 70 | **Sage Toad** |
-| 3 | CM <= 1, D < 70 | **Raiju** (lightning weasel) |
-| 4 | CM <= 3, D >= 70 | **Sage Toad** |
-| 5 | CM <= 3, D < 70 | **Tanuki** |
-| 6 | CM <= 5, Energy >= 50 | **Hawk** |
-| 7 | CM <= 5, Energy < 50 | **Moon Slug** |
-| 8 | any CM, D >= 50 | **Shadow Cat** |
-| 9 | any CM, D < 50 | **Serpent** |
+| 3 | CM <= 1, D < 70, B >= 60, J >= 70 | **Moon Rabbit** |
+| 4 | CM <= 1, D < 70 | **Raiju** (lightning weasel) |
+| 5 | CM <= 3, D >= 70, B >= 50 | **Cloud Sheep** |
+| 6 | CM <= 3, D >= 70 | **Sage Toad** |
+| 7 | CM <= 3, D < 70, J >= 70 | **Axolotl** |
+| 8 | CM <= 3, D < 70 | **Tanuki** |
+| 9 | CM <= 5, E >= 70 | **Frost Penguin** |
+| 10 | CM <= 5, E >= 50 | **Hawk** |
+| 11 | CM <= 5 | **Moon Slug** |
+| 12 | any CM, D >= 50 | **Shadow Cat** |
+| 13 | any CM, D < 50 | **Serpent** |
 
 Raise **discipline** by scolding tantrums (+12 each), using training scrolls (+10), shuriken training and the
-training mission. Raise **bond** by playing, completing missions and tapping the pet.
+training mission. Raise **bond** by playing, completing missions and tapping the pet. Keep **joy** high (feed it
+treats and play) for the rabbit and axolotl.
+
+## Animations
+
+Every stage and form has its own set of 12 frames, chosen from what the pet is doing:
+
+| State | Frames |
+|-------|--------|
+| Idle | a gentle loop with a blink every few seconds |
+| Sitting | now and then on the home screen; whenever it pauses while wandering in a room |
+| Walking | two-frame walk cycle while it roams a room (it turns to face the way it walks) |
+| Sleeping | curled up, slowly breathing |
+| Eating | bite and chew while a food item drops in |
+| Being cleaned | lathered in soap foam, then shaking the water off, with soap bubbles floating up |
+| Happy | after play, treats, and now and then when all stats are high |
+| Sad | when a stat is low, hungry, sick or bored |
+
+The egg wobbles and cracks, and the ghost floats.
 
 ## Economy
 
@@ -112,16 +135,35 @@ Currency is **ryo**. You start with 30 ryo, 1 medicine and 1 onigiri.
 
 ### Shop
 
+15 items in two categories, shown four per page with BACK / NEXT. Prices and effects:
+
+**Food** (any food: food is refused above 95; the energy and joy gains still apply to drinks)
+
+| Item | Price | Food | Joy | Energy |
+|------|-------|------|-----|--------|
+| Berry | 6 | +10 | +6 | |
+| Onigiri | 8 | +35 | +3 | |
+| Mochi | 10 | +15 | +12 | |
+| Dango | 12 | +8 | +20 | |
+| Matcha | 12 | +5 | +4 | +20 |
+| Taiyaki | 14 | +25 | +12 | |
+| Tempura | 16 | +40 | +6 | |
+| Udon | 18 | +45 | | +5 |
+| Ramen | 20 | +50 | +8 | |
+| Sushi | 22 | +45 | +10 | |
+| Cake | 26 | +20 | +30 | |
+| Bento | 30 | +70 | +8 | +5 |
+
+**Items**
+
 | Item | Price | Effect |
 |------|-------|--------|
-| Onigiri | 8 | Food +35, joy +3 |
-| Ramen | 20 | Food +50, joy +8 |
-| Dango | 12 | Food +8, joy +20 |
 | Chakra | 15 | Energy +40 (refused above 90) |
 | Medicine | 25 | Cures sickness |
 | Scroll | 30 | Discipline +10 |
 
-The bag holds up to 9 of each. **Rice** from the Feed room is free: food +20, joy +3. Food is refused above 95.
+The bag holds up to 9 of each. **Rice** from the Feed room is free: food +20, joy +3. The Feed list shows only the
+foods you own, four per page. An item you cannot use right now (for example food while full) is not consumed.
 
 ## Actions in detail
 
@@ -179,5 +221,5 @@ simulated time.
 
 ## DEX
 
-A permanent album of the 8 adult forms. Unlocked forms show their sprite; locked ones a silhouette. Tapping a card
+A permanent album of the 12 adult forms, six per page. Unlocked forms show their sprite; locked ones a silhouette. Tapping a card
 shows the evolution hint. The DEX also counts how many adults you have raised in total. It survives deaths.
