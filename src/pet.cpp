@@ -406,6 +406,11 @@ void petTap() {
   }
 }
 
+uint32_t petStageSecondsLeft() {
+  uint32_t total = pet.stage == S_BABY ? BABY_TIME : pet.stage == S_CHILD ? CHILD_TIME : pet.stage == S_TEEN ? TEEN_TIME : 0;
+  return pet.stageAge >= total ? 0 : total - pet.stageAge;
+}
+
 // ---- names ----
 const char *stageName() {
   static const char *names[] = {"EGG", "BABY", "CHILD", "TEEN", "ADULT", "SPIRIT"};

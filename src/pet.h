@@ -74,6 +74,7 @@ void petApplyGame(int joy, int discipline, int energyCost, int ryo, float bond);
 void petTap();  // tap the pet itself: warm the egg, scold a tantrum, or just pet it
 
 Need petNeed();
+uint32_t petStageSecondsLeft();  // game seconds until the next life stage (0 for egg, adult and ghost)
 const char *stageName();
 const char *formName();
 const char *adultName(int form);

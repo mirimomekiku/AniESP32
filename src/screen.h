@@ -13,6 +13,7 @@ extern const Screen MENU_SCREEN;
 extern const Screen CLOCK_SCREEN;
 extern const Screen SHOP_SCREEN;
 extern const Screen ALBUM_SCREEN;
+extern const Screen STATS_SCREEN;
 extern const Screen FEED_SCREEN;
 extern const Screen PLAY_SCREEN;
 extern const Screen CLEAN_SCREEN;
@@ -26,7 +27,7 @@ extern const Screen DIAG_SCREEN;
 // Everything after SCR_CLOCK is a full-screen page without the nav bar (it has its own back icon).
 enum ScreenId {
   SCR_VILLAGE, SCR_MENU, SCR_CLOCK,
-  SCR_SHOP, SCR_ALBUM,
+  SCR_SHOP, SCR_ALBUM, SCR_STATS,
   SCR_FEED, SCR_PLAY, SCR_CLEAN, SCR_BAG, SCR_SLEEP,
   SCR_SHURIKEN, SCR_SHELL, SCR_DIAG, SCR_COUNT
 };

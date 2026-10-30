@@ -369,6 +369,11 @@ def main():
     emit_group("DECOR", decor_names, slice_sheet(v2("v2_decor.png"), 4, 2, 24, 22, outline=False, center=True)[0], 24, 24)
     emit_group("MENU", menu_names, slice_sheet(v2("v2_menu.png"), 3, 3, 72, 66, center=True)[0], 128, 72)
     emit_group("ROOMUI", roomui_names, slice_sheet(v2("v2_roomui.png"), 4, 2, 44, 40, center=True)[0], 96, 44)
+    # a second menu badge (STATS) and the pixel-art MENU icon for the bottom bar
+    extra72 = slice_sheet(v3("v3_extra.png"), 2, 1, 72, 66, center=True)[0]
+    extra32 = slice_sheet(v3("v3_extra.png"), 2, 1, 32, 28, center=True)[0]
+    emit_group("MENU2", ["STATS"], [extra72[0]], 64, 72)
+    emit_group("NAV", ["MENU"], [extra32[1]], 48, 32)
     emit_group("FOOD", food_names, slice_sheet(v3("v3_foods.png"), 4, 3, 32, 28, center=True)[0], 96, 32)
 
     # egg, cracking egg and ghost keep their old art; the growing stages are full characters now
