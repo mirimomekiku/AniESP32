@@ -1,0 +1,6 @@
+# PlatformIO build output and editor state
+.pio/
+.vscode/
+# Previews written by tools/make_assets.py
+assets/preview/
+__pycache__/
