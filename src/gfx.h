@@ -42,12 +42,15 @@ void gradPanel(TFT_eSPI *dst, int x, int y, int w, int h, Ramp r, int bands = 5,
 void blitSprite(TFT_eSPI *dst, const Sprite &s, int x, int y);
 void blitSpriteScaled(TFT_eSPI *dst, const Sprite &s, int x, int y, int dw, int dh, bool flipX = false);  // nearest neighbour
 void blitSpriteHalf(TFT_eSPI *dst, const Sprite &s, int x, int y, bool flipX = false);  // smooth 2:1 reduction
+int spriteTopRow(const Sprite &s);  // first row that has a visible pixel (the sprite canvas has empty margins)
 void blitSilhouette(TFT_eSPI *dst, const Sprite &s, int x, int y, uint16_t color);
 void blitSilhouetteScaled(TFT_eSPI *dst, const Sprite &s, int x, int y, int dw, int dh, uint16_t color);
 
 // ---- text (bitmap fonts from tools/make_font.py) ----
-enum { TXT_LEFT = 0, TXT_CENTER = 1, TXT_RIGHT = 2, TXT_OUTLINE = 4, TXT_SHADOW = 8 };
+enum { TXT_LEFT = 0, TXT_CENTER = 1, TXT_RIGHT = 2, TXT_OUTLINE = 4, TXT_SHADOW = 8, TXT_LEFTX = 16 };  // TXT_LEFTX: left-align in drawTextC
 int textWidth(const PixelFont &f, const char *s, int scale);
+// Centred on (cx, cy) both ways, using the height of a capital letter, so labels sit in the middle of their buttons
+void drawTextC(TFT_eSPI *dst, const PixelFont &f, const char *s, int cx, int cy, int scale, uint16_t fill, uint16_t edge, int flags = 0);
 void drawText(TFT_eSPI *dst, const PixelFont &f, const char *s, int x, int y, int scale, uint16_t fill, uint16_t edge, int flags = TXT_LEFT);
 
 // ---- indexed backgrounds (240x320) ----

@@ -36,8 +36,8 @@ static int pages() { return max(1, (nrows + PER_PAGE - 1) / PER_PAGE); }
 static void footerButton(int x, int w, const char *label, Ramp ramp, bool enabled) {
   int y = MY + PER_PAGE * ROW_STEP;
   gradPanel(&tft, x, y, w, ROW_H, enabled ? ramp : R_GREY, 4, 0);
-  drawText(&tft, FONT_SILK, label, x + w / 2, y + 12, 2, enabled ? C_WHITE : C_TEXT, enabled ? C_OUT : C_WHITE,
-           enabled ? (TXT_CENTER | TXT_OUTLINE) : (TXT_CENTER | TXT_SHADOW));
+  drawTextC(&tft, FONT_SILK, label, x + w / 2, y + ROW_H / 2 - 1, 2, enabled ? C_WHITE : C_TEXT, enabled ? C_OUT : C_WHITE,
+            enabled ? TXT_OUTLINE : TXT_SHADOW);
 }
 
 static void draw() {

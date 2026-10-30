@@ -6,6 +6,7 @@ struct PixelFont {
   const uint8_t *bits;  // 95 glyphs x h rows, one byte per row, MSB = leftmost pixel
   const uint8_t *adv;   // advance width per glyph
   uint8_t h;
+  uint8_t capTop, capH;  // rows of a capital letter (for vertical centring)
 };
 
 extern const PixelFont FONT_SILK;  // 9 px tall

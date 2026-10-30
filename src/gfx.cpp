@@ -177,6 +177,19 @@ void blitSpriteHalf(TFT_eSPI *d, const Sprite &s, int x, int y, bool flipX) {
   }
 }
 
+int spriteTopRow(const Sprite &s) {
+  const uint8_t *p = s.rle;
+  for (int j = 0; j < s.h; j++) {
+    int x = 0;
+    while (x < s.w) {
+      uint8_t n = *p++, v = *p++;
+      if (v) return j;
+      x += n;
+    }
+  }
+  return 0;
+}
+
 void blitSilhouette(TFT_eSPI *d, const Sprite &s, int x, int y, uint16_t color) {
   eachRun(s, [&](int rx, int j, int n, int v) {
     if (v) d->fillRect(x + rx, y + j, n, 1, color);
@@ -242,6 +255,12 @@ void drawText(TFT_eSPI *d, const PixelFont &f, const char *s, int x, int y, int 
   glyphPass(d, f, s, x, y, scale, fill);
 }
 
+void drawTextC(TFT_eSPI *d, const PixelFont &f, const char *s, int cx, int cy, int scale, uint16_t fill, uint16_t edge, int flags) {
+  int top = cy - (f.capTop * scale + (f.capH * scale) / 2);
+  int h = (flags & TXT_RIGHT) ? TXT_RIGHT : ((flags & TXT_LEFTX) ? TXT_LEFT : TXT_CENTER);
+  drawText(d, f, s, cx, top, scale, fill, edge, (flags & (TXT_OUTLINE | TXT_SHADOW)) | h);
+}
+
 // ---- backgrounds ----
 void drawBg(const uint8_t *idx, const uint16_t *pal) {
   static uint16_t buf[SCREEN_W * 8];
@@ -288,37 +307,24 @@ void drawSegBar(TFT_eSPI *d, int x, int y, int filled, Ramp fillRamp, int segW) 
 }
 
 // ---- nav ----
-// Little 3x3 grid of coloured tiles used as the MENU tab icon
-static void drawMenuGlyph(int cx, int cy) {
-  const uint16_t cols[9] = {R_PINK.bot, R_MINT.bot, R_SKY.bot, R_BUTTER.bot, C_WHITE, R_PEACH.bot, R_LAV.bot, R_PINK.top, R_MINT.top};
-  for (int r = 0; r < 3; r++)
-    for (int c = 0; c < 3; c++) {
-      int x = cx - 15 + c * 10, y = cy - 15 + r * 10;
-      tft.fillRect(x, y, 9, 9, C_OUT);
-      tft.fillRect(x + 1, y + 1, 7, 7, cols[r * 3 + c]);
-      tft.fillRect(x + 1, y + 1, 7, 2, mix565(cols[r * 3 + c], C_WHITE, 120));
-    }
-}
-
 void drawNav(int activeTab) {
   const Ramp ramps[TAB_COUNT] = {R_PINK, R_LAV, R_SKY};
-  const Sprite *icons[TAB_COUNT] = {&UI_FRAMES[UI_HOUSE], nullptr, &UI_FRAMES[UI_CLOCK]};
+  const Sprite *icons[TAB_COUNT] = {&UI_FRAMES[UI_HOUSE], &NAV_FRAMES[NAV_MENU], &UI_FRAMES[UI_CLOCK]};
   tft.fillRect(0, NAV_Y, SCREEN_W, NAV_H, C_OUT);
   for (int i = 0; i < TAB_COUNT; i++) {
     bool active = activeTab == i;
     int x = i * 80 + 2, w = 76, h = NAV_H - 5;
     gradPanel(&tft, x, NAV_Y + 2, w, h, active ? ramps[i] : R_GREY, active ? 5 : 3, 3, active);
     int off = active ? 3 : 0;
-    if (icons[i]) blitSprite(&tft, *icons[i], x + (w - 32) / 2, NAV_Y + 2 + (h - 32) / 2 + off);
-    else drawMenuGlyph(x + w / 2, NAV_Y + 2 + h / 2 + off);
+    blitSprite(&tft, *icons[i], x + (w - 32) / 2, NAV_Y + 2 + (h - 32) / 2 + off);
   }
 }
 
 // ---- page bar ----
 static void pageButton(int x, int w, const char *label, bool enabled) {
   gradPanel(&tft, x, PAGE_Y, w, PAGE_H - 4, enabled ? R_SKY : R_GREY, 4, 3);
-  drawText(&tft, FONT_SILK, label, x + w / 2, PAGE_Y + 12, 2, enabled ? C_WHITE : C_TEXT, enabled ? C_OUT : C_WHITE,
-           enabled ? (TXT_CENTER | TXT_OUTLINE) : (TXT_CENTER | TXT_SHADOW));
+  drawTextC(&tft, FONT_SILK, label, x + w / 2, PAGE_Y + (PAGE_H - 4) / 2 - 1, 2, enabled ? C_WHITE : C_TEXT, enabled ? C_OUT : C_WHITE,
+            enabled ? TXT_OUTLINE : TXT_SHADOW);
 }
 
 void pageNavDraw(int page, int pages) {
@@ -327,7 +333,7 @@ void pageNavDraw(int page, int pages) {
   pageButton(144, 92, "NEXT >", page < pages - 1);
   char buf[12];
   snprintf(buf, sizeof(buf), "%d/%d", page + 1, pages);
-  drawText(&tft, FONT_CHUNK, buf, 120, PAGE_Y + 12, 1, C_WHITE, C_OUT, TXT_CENTER | TXT_OUTLINE);
+  drawTextC(&tft, FONT_CHUNK, buf, 120, PAGE_Y + (PAGE_H - 4) / 2 - 1, 1, C_WHITE, C_OUT, TXT_OUTLINE);
 }
 
 int pageNavHit(int x, int y, int page, int pages) {
