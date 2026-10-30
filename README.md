@@ -25,7 +25,7 @@ Everything (sprites, backgrounds, fonts, game logic) lives on the board.
 
 - A pet that **hatches, grows and evolves** into one of **12 adult forms**, depending on how you raise it
 - **Fully animated pets**: idle, walking, sitting, sleeping, eating, being washed, happy and sad, for every stage and form
-- Real **care mechanics**: hunger, mood, energy, poop, sickness, tantrums, bedtime
+- Real **care mechanics**: hunger, mood, energy, poop, sickness, tantrums, bedtime, plus a **stats screen** that tells you what to do next
 - A **main menu of round badge buttons** and cosy **room screens** where the pet wanders around
 - A **shop with 15 items** (12 foods, potion, medicine, scroll) across paged cards, a bag, a **DEX album**, mini-games and timed missions
 - A **pixel-art digital clock** with optional NTP sync and an alarm
@@ -80,6 +80,7 @@ clock over NTP. Full instructions: [Build and flash](docs/build-and-flash.md).
 | **Bag** | Medicine, chakra potions and training scrolls |
 | **Sleep** | Put it to bed or wake it up |
 | **Shop / DEX** | Spend ryo on foods and items (BACK/NEXT pages), see which of the 12 forms you have raised |
+| **Stats** | Every stat with a plain-language level, and a "what to do" list telling you where to focus |
 | **Clock** (bottom bar) | Set the time and the alarm |
 
 Keep the three bars (food, joy, energy) up, clean up the poop, answer its calls, and tap it to scold a tantrum.

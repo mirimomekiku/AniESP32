@@ -36,6 +36,7 @@ calls the active screen. The code is split so that **game rules never draw** and
 | `itemmenu.h/.cpp` | Pop-up lists with paging: owned foods, bag, play options, missions |
 | `shop.cpp` | Shop screen: FOOD / ITEMS chips, 2x2 cards, BACK / NEXT |
 | `games.cpp` | Shuriken and shell mini-games |
+| `stats.cpp` | Stats screen: vitals, care indicators, advice list |
 | `colortest.cpp` | Hidden colour test screen |
 | `gfx.h/.cpp` | Drawing toolkit, including the reusable BACK / NEXT page bar (`pageNavDraw`, `pageNavHit`) |
 | `hw.h/.cpp` | Peripherals: LED, buzzer, backlight fade, light sensor |
@@ -74,7 +75,7 @@ struct Screen {
 | `SCR_VILLAGE` | Home | Nav bar |
 | `SCR_MENU` | Main menu | Nav bar |
 | `SCR_CLOCK` | Clock | Nav bar |
-| `SCR_SHOP`, `SCR_ALBUM` | Shop, DEX | Menu (own back icon) |
+| `SCR_SHOP`, `SCR_ALBUM`, `SCR_STATS` | Shop, DEX, Stats | Menu (own back icon) |
 | `SCR_FEED/PLAY/CLEAN/BAG/SLEEP` | Rooms | Menu (back icon) |
 | `SCR_SHURIKEN`, `SCR_SHELL` | Mini-games | Play list |
 | `SCR_DIAG` | Colour test | Hidden: top-right corner of the menu |
@@ -122,7 +123,7 @@ drawing (day, dusk, night, dawn).
 
 - `gradPanel` draws a rounded panel with a 2 px outline and a **stepped gradient** in a handful of bands, a glossy
   highlight and an optional 3D lip. It works on the display or on any sprite.
-- Text uses two **bitmap fonts** rendered from open fonts: `FONT_SILK` (labels) and `FONT_CHUNK` (numbers, headings),
+- Text uses two **bitmap fonts** (`drawTextC` centres text on the height of a capital letter, which is how labels sit in the middle of buttons) rendered from open fonts: `FONT_SILK` (labels) and `FONT_CHUNK` (numbers, headings),
   with integer scaling, an 8-neighbour **outline** or a drop shadow, and left/centre/right alignment.
 - Stat bars are 5 gradient segments; the room screens use a compact version.
 

@@ -40,15 +40,27 @@ Egg -> Baby -> Child -> Teen -> Adult (12 possible forms)
 
 ## Needs and care mistakes
 
-The pet calls for attention with a text label under the stat bars (for example `HUNGRY!`), a repeating beep (every 45 s)
-and the red LED. The need
-shown is the highest priority one:
+The pet's condition is shown as up to two text labels under the stat bars (on the home screen and in every room),
+most important first. They are shown even while it sleeps:
 
-1. **Sick** 2. **Hungry** (food < 30) 3. **Poop** (2 or more piles) 4. **Tantrum** 5. **Bored** (joy < 30)
-6. **Sleepy** (energy < 20 while awake)
+| Label | When |
+|-------|------|
+| `SLEEPING` | asleep |
+| `FEELS ILL` | sick |
+| `STARVING!` / `FAMISHED!` / `HUNGRY!` | food at 0 / under 15 / under 30 |
+| `VERY SAD!` / `UNHAPPY!` | joy (the heart bar) at 0 / under 30 |
+| `EXHAUSTED` / `SLEEPY!` | energy under 10 / under 20, awake |
+| `TOO DIRTY!` | 2 or more poop piles |
+| `GRUMPY!` | a tantrum |
+
+A repeating beep (every 45 s) and the red LED call you for the most important awake need, in this order:
+**sick, hungry** (food < 30), **poop** (2 or more piles), **tantrum**, **bored** (joy < 30), **sleepy**
+(energy < 20). Note that "bored" and "unhappy" come from the **joy** (heart) bar, not from energy.
 
 A need that stays unanswered for **15 minutes** is a **care mistake** (once per call; tantrums have their own rule).
 Care mistakes push the evolution toward the less rewarding forms.
+
+The **Stats** screen (main menu) shows every number, and a "what to do" list.
 
 ### Poop
 

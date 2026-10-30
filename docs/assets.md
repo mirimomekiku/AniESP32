@@ -41,6 +41,7 @@ All 96x96, 180 frames in total.
 
 | File | Grid | Content | Final size |
 |------|------|---------|------------|
+| `v3_extra.png` | 2 x 1 | the STATS menu badge (72x72) and the MENU icon for the bottom bar (32x32) | 72 / 32 |
 | `v3_foods.png` | 4 x 3 | onigiri, ramen, dango, mochi, tempura, sushi, taiyaki, udon, matcha, cake, bento, berry | 32x32 |
 | `v2_stages.png` | 4 x 2 | only the egg, cracking egg and ghost are used (cells 1, 2 and 8) | 96x96 |
 | `v2_items.png` | 4 x 4 | ramen, onigiri, dango, potion, medicine, kunai, shuriken, scroll, headband, poop, bandage, skull, light bulb, smoke, coin, lantern | 32x32 |
