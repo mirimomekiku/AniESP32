@@ -33,21 +33,24 @@ const Sprite &itemSprite(ShopItem id) {
   return d.kind == IK_FOOD ? FOOD_FRAMES[d.sprite] : ITEM_FRAMES[d.sprite];
 }
 
-void itemEffectLines(ShopItem id, char l1[20], char l2[20]) {
+int itemEffects(ShopItem id, ItemEffect out[4]) {
   const ShopItemDef &d = SHOP_ITEMS[id];
-  l1[0] = l2[0] = 0;
-  if (id == SI_MEDICINE) {
-    snprintf(l1, 20, "CURES SICKNESS");
-    return;
-  }
-  struct { const char *n; int v; } fx[4] = {{"FOOD", d.food}, {"JOY", d.joy}, {"ENERGY", d.energy}, {"DISC", d.discipline}};
-  int shown = 0;
-  for (auto &e : fx) {
-    if (!e.v) continue;
-    char *dst = shown < 2 ? l1 : l2;
-    size_t len = strlen(dst);
-    snprintf(dst + len, 20 - len, "%s%s +%d", len ? "  " : "", e.n, e.v);
-    shown++;
+  int n = 0;
+  if (id == SI_MEDICINE) out[n++] = {EF_CURE, 0};
+  if (d.food) out[n++] = {EF_FOOD, d.food};
+  if (d.joy) out[n++] = {EF_JOY, d.joy};
+  if (d.energy) out[n++] = {EF_ENERGY, d.energy};
+  if (d.discipline) out[n++] = {EF_DISCIPLINE, d.discipline};
+  return n;
+}
+
+const Sprite &effectIcon(EffectKind k) {
+  switch (k) {
+    case EF_FOOD: return UI_FRAMES[UI_APPLE];
+    case EF_JOY: return UI_FRAMES[UI_HEART];
+    case EF_ENERGY: return UI_FRAMES[UI_BOLT];
+    case EF_DISCIPLINE: return UI_FRAMES[UI_STAR];
+    default: return UI_FRAMES[UI_CROSS];
   }
 }
 

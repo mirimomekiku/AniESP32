@@ -26,8 +26,14 @@ struct ShopItemDef {
 extern const ShopItemDef SHOP_ITEMS[SI_COUNT];
 
 const Sprite &itemSprite(ShopItem id);
-// Effects as display text, up to two lines such as "FOOD +35  JOY +3"; unused lines are empty strings.
-void itemEffectLines(ShopItem id, char line1[20], char line2[20]);
+// What an item does, as (icon, value) pairs for the shop cards: food/joy/energy/discipline gains, or a cure.
+enum EffectKind : uint8_t { EF_FOOD, EF_JOY, EF_ENERGY, EF_DISCIPLINE, EF_CURE };
+struct ItemEffect {
+  EffectKind kind;
+  int8_t value;
+};
+int itemEffects(ShopItem id, ItemEffect out[4]);  // returns how many
+const Sprite &effectIcon(EffectKind k);
 
 // Shop order: cheapest first within each category
 extern const ShopItem SHOP_FOODS[12];

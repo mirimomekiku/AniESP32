@@ -47,8 +47,8 @@ static void drawChips() {
     int x = 4 + i * 118, w = 114;
     bool on = category == i;
     gradPanel(&tft, x, CHIP_Y, w, CHIP_H, on ? R_BUTTER : R_GREY, 4, on ? 0 : 2);
-    drawText(&tft, FONT_SILK, names[i], x + w / 2, CHIP_Y + 7, 2, on ? C_WHITE : C_TEXT, on ? C_OUT : C_WHITE,
-             on ? (TXT_CENTER | TXT_OUTLINE) : (TXT_CENTER | TXT_SHADOW));
+    drawTextC(&tft, FONT_SILK, names[i], x + w / 2, CHIP_Y + CHIP_H / 2 - (on ? 0 : 1), 2, on ? C_WHITE : C_TEXT, on ? C_OUT : C_WHITE,
+              on ? TXT_OUTLINE : TXT_SHADOW);
   }
 }
 
@@ -71,12 +71,25 @@ static void drawCard(int slot) {
     gradPanel(&tft, x + CARD_W - w - 5, y + 5, w, 15, R_CREAM, 3, 0, false, 3);
     drawText(&tft, FONT_SILK, own, x + CARD_W - 5 - w / 2, y + 8, 1, C_TEXT, C_WHITE, TXT_CENTER);
   }
-  drawText(&tft, FONT_SILK, d.name, x + CARD_W / 2, y + 41, 2, C_WHITE, C_OUT, TXT_CENTER | TXT_OUTLINE);
+  // a modest title (the chunky 8 px font at 1x), then the effects as icon + number
+  drawText(&tft, FONT_CHUNK, d.name, x + CARD_W / 2, y + 41, 1, C_WHITE, C_OUT, TXT_CENTER | TXT_OUTLINE);
 
-  char l1[20], l2[20];
-  itemEffectLines(id, l1, l2);
-  drawText(&tft, FONT_SILK, l1, x + CARD_W / 2, y + 57, 1, C_TEXT, C_WHITE, TXT_CENTER | TXT_SHADOW);
-  if (l2[0]) drawText(&tft, FONT_SILK, l2, x + CARD_W / 2, y + 66, 1, C_TEXT, C_WHITE, TXT_CENTER | TXT_SHADOW);
+  ItemEffect fx[4];
+  int ne = itemEffects(id, fx);
+  char val[8][8];
+  int total = 0;
+  for (int i = 0; i < ne; i++) {
+    if (fx[i].kind == EF_CURE) snprintf(val[i], sizeof(val[i]), "CURE");
+    else snprintf(val[i], sizeof(val[i]), "+%d", fx[i].value);
+    total += 16 + 1 + textWidth(FONT_SILK, val[i], 1) + (i ? 5 : 0);
+  }
+  int ex = x + (CARD_W - total) / 2;
+  for (int i = 0; i < ne; i++) {
+    if (i) ex += 5;
+    blitSpriteHalf(&tft, effectIcon(fx[i].kind), ex, y + 55);  // 32 px icon averaged down to 16
+    drawTextC(&tft, FONT_SILK, val[i], ex + 16 + 1 + textWidth(FONT_SILK, val[i], 1) / 2, y + 55 + 8, 1, C_TEXT, C_WHITE, TXT_SHADOW);
+    ex += 16 + 1 + textWidth(FONT_SILK, val[i], 1);
+  }
 
   char price[8];
   snprintf(price, sizeof(price), "%u", d.price);
