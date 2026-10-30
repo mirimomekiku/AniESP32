@@ -7,15 +7,15 @@ struct Entry {
   int screen;  // where it leads
 };
 
-static const int N = 8;
+static const int N = 9;
 static const Entry ENTRIES[N] = {
     {&MENU_FRAMES[MENU_FEED], SCR_FEED},   {&MENU_FRAMES[MENU_PLAY], SCR_PLAY}, {&MENU_FRAMES[MENU_CLEAN], SCR_CLEAN},
     {&MENU_FRAMES[MENU_BAG], SCR_BAG},     {&MENU_FRAMES[MENU_SLEEP], SCR_SLEEP}, {&MENU_FRAMES[MENU_SHOP], SCR_SHOP},
-    {&MENU_FRAMES[MENU_DEX], SCR_ALBUM},   {&MENU2_FRAMES[MENU2_STATS], SCR_STATS},
+    {&MENU_FRAMES[MENU_DEX], SCR_ALBUM},   {&MENU2_FRAMES[MENU2_STATS], SCR_STATS}, {&MENU2_FRAMES[MENU2_HELP], SCR_HELP},
 };
 
-// Rows of 3, 3 and 2 badges, each row centred, the whole block centred above the nav bar
-static const int ROW_COUNTS[3] = {3, 3, 2};
+// A 3x3 grid of badges, the whole block centred above the nav bar
+static const int ROW_COUNTS[3] = {3, 3, 3};
 static const int GAP_X = 6, GAP_Y = 18;
 static const int TOP = (NAV_Y - (3 * MENU_SIZE + 2 * GAP_Y)) / 2;
 

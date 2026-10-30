@@ -372,7 +372,8 @@ def main():
     # a second menu badge (STATS) and the pixel-art MENU icon for the bottom bar
     extra72 = slice_sheet(v3("v3_extra.png"), 2, 1, 72, 66, center=True)[0]
     extra32 = slice_sheet(v3("v3_extra.png"), 2, 1, 32, 28, center=True)[0]
-    emit_group("MENU2", ["STATS"], [extra72[0]], 64, 72)
+    help72 = slice_sheet(v3("v3_help.png"), 1, 1, 72, 66, center=True)[0]
+    emit_group("MENU2", ["STATS", "HELP"], [extra72[0], help72[0]], 96, 72)
     emit_group("NAV", ["MENU"], [extra32[1]], 48, 32)
     emit_group("FOOD", food_names, slice_sheet(v3("v3_foods.png"), 4, 3, 32, 28, center=True)[0], 96, 32)
 

@@ -22,7 +22,7 @@
 SPIClass touchSPI(VSPI);
 XPT2046_Touchscreen ts(XPT2046_CS, XPT2046_IRQ);
 
-static const Screen *screens[SCR_COUNT] = {&VILLAGE_SCREEN, &MENU_SCREEN,  &CLOCK_SCREEN,   &SHOP_SCREEN,   &ALBUM_SCREEN,  &STATS_SCREEN,
+static const Screen *screens[SCR_COUNT] = {&VILLAGE_SCREEN, &MENU_SCREEN,  &CLOCK_SCREEN,   &SHOP_SCREEN,   &ALBUM_SCREEN,  &STATS_SCREEN,  &HELP_SCREEN,
                                            &FEED_SCREEN,    &PLAY_SCREEN,  &CLEAN_SCREEN,   &BAG_SCREEN,    &SLEEP_SCREEN,
                                            &SHURIKEN_SCREEN, &SHELL_SCREEN, &DIAG_SCREEN};
 static int current = 0;
