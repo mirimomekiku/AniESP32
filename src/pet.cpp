@@ -91,30 +91,46 @@ struct EvoRule {
   uint8_t minB;
   uint8_t minE;
   uint8_t minJ;
+  uint8_t minF;
   uint8_t form;
 };
 
 static const EvoRule EVO[] = {
-    // maxCM minD maxD minB minE minJ  form
-    {1, 70, 100, 70, 0, 0, ADULT_FOX},
-    {1, 70, 100, 0, 0, 0, ADULT_TOAD},
-    {1, 0, 69, 60, 0, 70, ADULT_RABBIT},
-    {1, 0, 69, 0, 0, 0, ADULT_WEASEL},
-    {3, 70, 100, 50, 0, 0, ADULT_SHEEP},
-    {3, 70, 100, 0, 0, 0, ADULT_TOAD},
-    {3, 0, 69, 0, 0, 70, ADULT_AXOLOTL},
-    {3, 0, 69, 0, 0, 0, ADULT_TANUKI},
-    {5, 0, 100, 0, 70, 0, ADULT_PENGUIN},
-    {5, 0, 100, 0, 50, 0, ADULT_HAWK},
-    {5, 0, 100, 0, 0, 0, ADULT_SLUG},
-    {255, 50, 100, 0, 0, 0, ADULT_CAT},
-    {255, 0, 49, 0, 0, 0, ADULT_SNAKE},
+    // maxCM minD maxD minB minE minJ minF  form          (first match wins)
+    // no mistakes at all
+    {0, 85, 100, 85, 0, 80, 0, ADULT_DRAGON},
+    // at most one mistake
+    {1, 70, 100, 70, 0, 0, 0, ADULT_FOX},
+    {1, 70, 100, 0, 70, 0, 0, ADULT_CRANE},
+    {1, 70, 100, 0, 0, 0, 0, ADULT_TOAD},
+    {1, 0, 69, 60, 0, 70, 0, ADULT_RABBIT},
+    {1, 0, 69, 60, 0, 0, 0, ADULT_PANDA},
+    {1, 0, 69, 0, 0, 70, 0, ADULT_KOI},
+    {1, 0, 69, 0, 0, 0, 0, ADULT_WEASEL},
+    // two or three
+    {3, 70, 100, 50, 0, 0, 0, ADULT_SHEEP},
+    {3, 70, 100, 0, 0, 0, 70, ADULT_TORTOISE},
+    {3, 70, 100, 0, 0, 0, 0, ADULT_TOAD},
+    {3, 0, 69, 50, 0, 70, 0, ADULT_CAPYBARA},
+    {3, 0, 69, 0, 0, 70, 0, ADULT_AXOLOTL},
+    {3, 0, 69, 0, 0, 0, 0, ADULT_TANUKI},
+    // four or five
+    {5, 0, 100, 0, 70, 0, 0, ADULT_PENGUIN},
+    {5, 0, 100, 0, 50, 0, 0, ADULT_HAWK},
+    {5, 0, 100, 0, 0, 50, 0, ADULT_OCTOPUS},
+    {5, 0, 100, 0, 0, 0, 60, ADULT_HEDGEHOG},
+    {5, 0, 100, 0, 0, 0, 0, ADULT_SLUG},
+    // six or more
+    {255, 50, 100, 0, 60, 0, 0, ADULT_REDPANDA},
+    {255, 50, 100, 0, 0, 0, 0, ADULT_CAT},
+    {255, 0, 49, 40, 0, 0, 0, ADULT_BAT},
+    {255, 0, 49, 0, 0, 0, 0, ADULT_SNAKE},
 };
 
 static uint8_t pickForm() {
   for (const EvoRule &r : EVO) {
     if (pet.careMistakes <= r.maxCM && pet.discipline >= r.minD && pet.discipline <= r.maxD && pet.bond >= r.minB &&
-        pet.energy >= r.minE && pet.joy >= r.minJ)
+        pet.energy >= r.minE && pet.joy >= r.minJ && pet.food >= r.minF)
       return r.form;
   }
   return ADULT_SNAKE;
@@ -419,7 +435,9 @@ const char *stageName() {
 
 const char *adultName(int form) {
   static const char *names[] = {"KITSUNE", "SAGE TOAD", "TANUKI", "SHADOW CAT", "RAIJU", "MOON SLUG",
-                                "HAWK",    "SERPENT",   "MOON RABBIT", "AXOLOTL", "FROST PENGUIN", "CLOUD SHEEP"};
+                                "HAWK",    "SERPENT",   "MOON RABBIT", "AXOLOTL", "FROST PENGUIN", "CLOUD SHEEP",
+                                "RED PANDA", "JADE DRAGON", "KOI SPIRIT", "CRANE", "HEDGEHOG", "CAPYBARA",
+                                "OCTOPUS", "TORTOISE", "PANDA", "BAT"};
   return names[form];
 }
 

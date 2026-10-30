@@ -8,13 +8,14 @@
 #include "config.h"
 #include "screen.h"
 
-static uint16_t mask = 0;
+static uint32_t mask = 0;  // one bit per adult form (22 forms)
 static uint16_t raised = 0;
 
 void albumLoad() {
   Preferences prefs;
   prefs.begin("tama", true);
-  mask = prefs.getUShort("albumw", prefs.getUChar("album", 0));  // older saves stored 8 bits under "album"
+  // older saves stored 8 bits under "album" and then 16 under "albumw"
+  mask = prefs.getUInt("albumd", prefs.getUShort("albumw", prefs.getUChar("album", 0)));
   raised = prefs.getUShort("raised", 0);
   prefs.end();
 }
@@ -22,7 +23,7 @@ void albumLoad() {
 static void albumSave() {
   Preferences prefs;
   prefs.begin("tama", false);
-  prefs.putUShort("albumw", mask);
+  prefs.putUInt("albumd", mask);
   prefs.putUShort("raised", raised);
   prefs.end();
 }
@@ -46,18 +47,28 @@ int albumCount() {
 // Mirrors the evolution table in pet.cpp (CM = care mistakes, D = discipline, B = bond, J = joy, E = energy)
 const char *albumHint(uint8_t form) {
   static const char *hints[ADULT_COUNT] = {
-      "CM<=1  D 70+  B 70+",           // fox
-      "CM<=3  D 70+",                  // toad
-      "CM 2-3  D<70  JOY<70",          // tanuki
-      "CM 6+  D 50+",                  // cat
-      "CM<=1  D<70  (NOT BONDED)",     // weasel
-      "CM 4-5  ENERGY UNDER 50",       // slug
-      "CM 4-5  ENERGY 50-69",          // hawk
-      "CM 6+  D UNDER 50",             // snake
-      "CM<=1  D<70  B 60+  JOY 70+",   // rabbit
-      "CM 2-3  D<70  JOY 70+",         // axolotl
-      "CM 4-5  ENERGY 70+",            // penguin
-      "CM 2-3  D 70+  B 50+",          // sheep
+      "CM<=1  D 70+  B 70+",               // fox
+      "CM<=3  D 70+  (OTHERWISE)",         // toad
+      "CM 2-3  D<70  JOY<70",              // tanuki
+      "CM 6+  D 50+  ENERGY<60",           // cat
+      "CM<=1  D<70  B<60  JOY<70",         // weasel
+      "CM 4-5  ENERGY, JOY, FOOD LOW",     // slug
+      "CM 4-5  ENERGY 50-69",              // hawk
+      "CM 6+  D<50  B<40",                 // snake
+      "CM<=1  D<70  B 60+  JOY 70+",       // rabbit
+      "CM 2-3  D<70  JOY 70+  B<50",       // axolotl
+      "CM 4-5  ENERGY 70+",                // penguin
+      "CM 2-3  D 70+  B 50+",              // sheep
+      "CM 6+  D 50+  ENERGY 60+",          // red panda
+      "NO MISTAKES  D 85+  B 85+  JOY 80+",// dragon
+      "CM<=1  D<70  B<60  JOY 70+",        // koi
+      "CM<=1  D 70+  B<70  ENERGY 70+",    // crane
+      "CM 4-5  FOOD 60+  JOY<50  E<50",    // hedgehog
+      "CM 2-3  D<70  JOY 70+  B 50+",      // capybara
+      "CM 4-5  JOY 50+  ENERGY<50",        // octopus
+      "CM 2-3  D 70+  B<50  FOOD 70+",     // tortoise
+      "CM<=1  D<70  B 60+  JOY<70",        // panda
+      "CM 6+  D<50  B 40+",                // bat
   };
   return hints[form];
 }
@@ -100,8 +111,7 @@ static void drawName(const char *name, int x, int y, uint16_t fill, uint16_t edg
 }
 
 static void drawCard(int slot) {
-  static const Ramp ramps[ADULT_COUNT] = {R_PEACH, R_MINT, R_LAV, R_PINK, R_BUTTER, R_SKY,
-                                          R_PEACH, R_MINT, R_PINK, R_SKY,  R_LAV,    R_BUTTER};
+  static const Ramp ramps[8] = {R_PEACH, R_MINT, R_LAV, R_PINK, R_BUTTER, R_SKY, R_MINT, R_PEACH};
   int form = pageNo * PER_PAGE + slot;
   if (form >= ADULT_COUNT) return;
   int x, y;
@@ -109,7 +119,7 @@ static void drawCard(int slot) {
   bool has = albumHas(form);
   bool current = pet.stage == S_ADULT && pet.form == form;
   const Sprite &spr = PET_SPRITES[CH_FIRST_ADULT + form][POSE_IDLE_A];
-  gradPanel(&tft, x, y, CARD_W, CARD_H, selected == form ? R_BUTTER : (has ? ramps[form] : R_GREY), 5, 0);
+  gradPanel(&tft, x, y, CARD_W, CARD_H, selected == form ? R_BUTTER : (has ? ramps[form % 8] : R_GREY), 5, 0);
   if (has) blitSpriteHalf(&tft, spr, x + 4, y + 8);
   else blitSilhouetteScaled(&tft, spr, x + 4, y + 8, 48, 48, mix565(R_GREY.bot, C_OUT, 90));
   if (has) drawName(adultName(form), x + 56, y + 10, C_WHITE, C_OUT);
