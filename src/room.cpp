@@ -132,7 +132,7 @@ static void drawView() {
     drawText(&view, FONT_CHUNK, "Z", cx + 14, feet - PET - off, 2, R_PINK.bot, C_WHITE, TXT_OUTLINE);
   }
   pvDrawEffects(&view, cx, feet, PET);
-  pvDrawBubble(&view, VW, cx, petTop + 4);  // follows the pet
+  pvDrawBubble(&view, VW, cx, petTop + spriteTopRow(*sprite) / 2);  // follows the pet, just above its head
   view.pushSprite(VX, VY);
 }
 

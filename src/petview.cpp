@@ -205,48 +205,74 @@ void pvDrawEffects(TFT_eSPI *d, int cx, int floorY, int petH) {
   }
 }
 
-void pvDrawBubble(TFT_eSPI *d, int vw, int anchorX, int anchorTopY) {
+void pvDrawBubble(TFT_eSPI *d, int vw, int anchorX, int headTopY) {
   const char *m = pvMessage();
   if (!m) return;
-  const int H = 30, TAIL = 6;
-  int w = textWidth(FONT_SILK, m, 2) + 20;
-  int bx = constrain(anchorX - w / 2, 2, vw - w - 2);
-  int by = max(2, anchorTopY - H - TAIL - 2);
-  gradPanel(d, bx, by, w, H, R_CREAM, 3, 0);
-  int tx = constrain(anchorX, bx + 10, bx + w - 10);  // the tail points at the pet
-  d->fillRect(tx - 5, by + H, 10, 4, C_OUT);
-  d->fillRect(tx - 3, by + H - 2, 6, 5, C_CREAM);
-  d->fillRect(tx - 2, by + H + 4, 4, 2, C_OUT);
-  drawText(d, FONT_SILK, m, bx + w / 2, by + 10, 2, C_TEXT, C_WHITE, TXT_CENTER);
+  const int H = 17, PADX = 6, TAIL = 5;
+  int w = textWidth(FONT_SILK, m, 1) + 2 * PADX;
+  int lean = anchorX < vw / 2 ? 1 : -1;  // pet on the left: bubble sits a little to the right, and the other way round
+  int bx = constrain(anchorX + lean * 12 - w / 2, 2, vw - w - 2);
+  int by = max(2, headTopY - H - TAIL);
+  gradPanel(d, bx, by, w, H, R_CREAM, 3, 0, false, 3);
+  // tail: a small triangle pointing down at the pet
+  int tx = constrain(anchorX, bx + 7, bx + w - 7);
+  for (int r = 0; r < 5; r++) d->fillRect(tx - 5 + r, by + H - 2 + r, 11 - 2 * r, 1, C_OUT);
+  for (int r = 0; r < 3; r++) d->fillRect(tx - 3 + r, by + H - 2 + r, 7 - 2 * r, 1, C_CREAM);
+  drawTextC(d, FONT_SILK, m, bx + w / 2, by + H / 2, 1, C_TEXT, C_WHITE);
 }
 
-// ---- need label ----
-static int shownNeed = -2;  // -2 = nothing known on screen
+// ---- status labels ----
+struct StatusLine {
+  char text[16];
+  Ramp ramp;
+};
 
-static const char *needText(Need n) {
-  switch (n) {
-    case NEED_SICK: return "FEELS ILL";
-    case NEED_HUNGER: return "HUNGRY!";
-    case NEED_POOP: return "TOO DIRTY!";
-    case NEED_TANTRUM: return "GRUMPY!";
-    case NEED_BORED: return "BORED!";
-    case NEED_SLEEPY: return "SLEEPY!";
-    default: return "";
+// What is wrong right now, most important first; at most two lines. Shown even while the pet sleeps.
+static int buildStatus(StatusLine out[2]) {
+  if (pet.stage == S_EGG || pet.stage == S_GHOST || mission.active) return 0;
+  int n = 0;
+  auto add = [&](const char *t, Ramp r) {
+    if (n < 2) {
+      snprintf(out[n].text, sizeof(out[n].text), "%s", t);
+      out[n].ramp = r;
+      n++;
+    }
+  };
+  if (pet.sleeping) add("SLEEPING", R_LAV);
+  if (pet.sick) add("FEELS ILL", R_RED);
+  if (pet.food < 1) add("STARVING!", R_RED);
+  else if (pet.food < 15) add("FAMISHED!", R_RED);
+  else if (pet.food < 30) add("HUNGRY!", R_BUTTER);
+  if (pet.joy < 1) add("VERY SAD!", R_RED);
+  else if (pet.joy < 30) add("UNHAPPY!", R_BUTTER);
+  if (!pet.sleeping) {
+    if (pet.energy < 10) add("EXHAUSTED", R_RED);
+    else if (pet.energy < 20) add("SLEEPY!", R_BUTTER);
   }
+  if (pet.poop >= 2) add("TOO DIRTY!", R_PEACH);
+  if (pet.tantrum) add("GRUMPY!", R_PEACH);
+  return n;
 }
+
+static char shownStatus[40] = "?";
+static int shownLines = 0;
 
 void pvNeedLabelDraw(const uint8_t *bg, const uint16_t *pal, int xRight, int y, bool force) {
-  Need n = (pet.sleeping || mission.active) ? NEED_NONE : petNeed();
-  if (!force && (int)n == shownNeed) return;
-  const int H = 24, MAXW = 150;
-  if (!force && shownNeed > 0) drawBgRegion(bg, pal, xRight - MAXW, y, MAXW + 2, H + 4);  // erase the old label
-  shownNeed = n;
-  if (n == NEED_NONE) return;
-  const char *t = needText(n);
-  int w = textWidth(FONT_SILK, t, 2) + 18;
-  Ramp r = (n == NEED_SICK || n == NEED_HUNGER) ? R_RED : R_BUTTER;
-  gradPanel(&tft, xRight - w, y, w, H, r, 4, 0);
-  drawText(&tft, FONT_SILK, t, xRight - w / 2, y + 7, 2, C_WHITE, C_OUT, TXT_CENTER | TXT_OUTLINE);
+  StatusLine lines[2];
+  int n = buildStatus(lines);
+  char sig[40];
+  snprintf(sig, sizeof(sig), "%d|%s|%s", n, n > 0 ? lines[0].text : "", n > 1 ? lines[1].text : "");
+  if (!force && strcmp(sig, shownStatus) == 0) return;
+  const int H = 22, GAP = 2, MAXW = 152;
+  if (!force && shownLines > 0) drawBgRegion(bg, pal, xRight - MAXW, y, MAXW + 2, shownLines * (H + GAP) + 2);
+  snprintf(shownStatus, sizeof(shownStatus), "%s", sig);
+  shownLines = n;
+  for (int i = 0; i < n; i++) {
+    int w = textWidth(FONT_SILK, lines[i].text, 2) + 16;
+    int ly = y + i * (H + GAP);
+    gradPanel(&tft, xRight - w, ly, w, H, lines[i].ramp, 4, 0, false, 3);
+    drawTextC(&tft, FONT_SILK, lines[i].text, xRight - w / 2, ly + H / 2, 2, C_WHITE, C_OUT, TXT_OUTLINE);
+  }
 }
 
 // ---- stat bars ----

@@ -102,7 +102,7 @@ static void drawPetView() {
   }
 
   pvDrawEffects(&view, VW / 2, FLOOR_Y, 96);
-  pvDrawBubble(&view, VW, px + dw / 2, py + 8);  // above the pet's head
+  pvDrawBubble(&view, VW, px + dw / 2, py + spriteTopRow(*sprite) * dh / sprite->h);  // just above the visible head
 
   // caption: form name, care mistakes, ryo
   char cap[40];
